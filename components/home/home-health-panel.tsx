@@ -112,7 +112,9 @@ export function HomeHealthPanel({ appEnv }: { appEnv: string }) {
         </div>
 
         {loading && !health ? (
-          <p className="py-4 text-center text-sm text-jc-gray-500 font-inter">Verificando componentes…</p>
+          <p className="py-4 text-center text-sm text-jc-gray-500 font-inter">
+            Verificando componentes…
+          </p>
         ) : health ? (
           <>
             <ul className="divide-y divide-jc-gray-100">

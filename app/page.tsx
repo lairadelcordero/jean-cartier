@@ -5,6 +5,8 @@ import Image from "next/image";
 const LOGO_ALT =
   "Jean Cartier: monograma JC, marca oficial de licencias y marketplace en Argentina.";
 
+const WORDMARK_ALT = "Jean Cartier";
+
 const WEBP_SRC_SET =
   "/images/brand/jc-monogram-64w.webp 64w, /images/brand/jc-monogram-128w.webp 128w, /images/brand/jc-monogram-256w.webp 256w, /images/brand/jc-monogram-512w.webp 512w";
 
@@ -41,7 +43,16 @@ export default function HomePage() {
             </picture>
           </div>
           <h1 id="hero-heading" className="mb-2">
-            Jean Cartier
+            <Image
+              src="/images/brand/logo_negro.svg"
+              alt={WORDMARK_ALT}
+              width={275}
+              height={25}
+              className="mx-auto h-auto w-full max-w-[min(90vw,20rem)] sm:max-w-md"
+              priority
+              fetchPriority="high"
+              unoptimized
+            />
           </h1>
           <HomeHealthPanel appEnv={appEnv} />
         </section>

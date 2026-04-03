@@ -61,8 +61,8 @@ jean-cartier/
 ### 1. Clone the repository
 
 ```bash
-git clone https://github.com/lairadelcordero/jeancartier.git
-cd jeancartier
+git clone https://github.com/lairadelcordero/jean-cartier.git
+cd jean-cartier
 ```
 
 ### 2. Install dependencies
