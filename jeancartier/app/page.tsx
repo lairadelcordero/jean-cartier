@@ -36,7 +36,7 @@ export default function HomePage() {
                 priority
                 fetchPriority="high"
                 sizes="(max-width: 640px) 80px, 128px"
-                className="h-20 w-20 rounded-2xl border border-jc-g2 bg-jc-white object-contain shadow-jc sm:h-28 sm:w-28"
+                className="h-20 w-20 rounded-brand border border-jc-gray-100 bg-jc-white object-contain shadow-jc sm:h-28 sm:w-28"
               />
             </picture>
           </div>
