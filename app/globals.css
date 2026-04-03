@@ -1,0 +1,84 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Jean Cartier — manual de marca (Figma Make / theme.css) */
+:root {
+  --jc-black: #000000;
+  --jc-white: #ffffff;
+  --jc-gray-900: #1a1a1a;
+  --jc-gray-700: #4a4a4a;
+  --jc-gray-500: #7a7a7a;
+  --jc-gray-300: #b0b0b0;
+  --jc-gray-100: #e5e5e5;
+  --jc-gray-50: #f5f5f5;
+  --jc-gold: #c9a961;
+  --jc-gold-light: #e8d5a8;
+
+  --font-size-root: 16px;
+
+  /* Fustat (variable 200–800). Display = peso 300 según guía (h1/h2). */
+  --fustat-wght-body: 400;
+  --fustat-wght-emphasis: 500;
+  --fustat-wght-heading: 500;
+  --fustat-wght-display: 300;
+}
+
+@layer base {
+  html {
+    font-size: var(--font-size-root);
+  }
+
+  body {
+    @apply bg-gradient-page font-body text-body text-jc-black antialiased;
+    font-feature-settings: "kern" 1;
+  }
+
+  /* Tipografía HTML del manual (h1–h4); las utilidades Tailwind siguen ganando. */
+  h1 {
+    font-size: clamp(2rem, 5vw, 3rem);
+    font-weight: var(--fustat-wght-display);
+    line-height: 1.2;
+    letter-spacing: -0.02em;
+    color: var(--jc-black);
+  }
+
+  /* h2–h4 del manual: usar en páginas con text-title-lg / text-title-md / text-title-sm */
+
+  p {
+    @apply text-body text-jc-black;
+  }
+}
+
+.skip-to-content {
+  position: absolute;
+  left: 1rem;
+  top: 1rem;
+  z-index: 9999;
+  padding: 0.75rem 1rem;
+  clip: rect(0 0 0 0);
+  clip-path: inset(50%);
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  white-space: nowrap;
+  background-color: var(--jc-black);
+  color: var(--jc-white);
+  font-family: var(--font-inter), system-ui, sans-serif;
+  font-weight: 500;
+  font-size: 0.875rem;
+  line-height: 1.5;
+  letter-spacing: 0.01em;
+  border-radius: 0.25rem;
+  text-decoration: none;
+}
+
+.skip-to-content:focus {
+  clip: auto;
+  clip-path: none;
+  width: auto;
+  height: auto;
+  overflow: visible;
+  outline: 2px solid var(--jc-gold);
+  outline-offset: 2px;
+}
