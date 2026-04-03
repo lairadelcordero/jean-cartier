@@ -1,0 +1,55 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --color-primary: #1a1a2e;
+  --color-accent: #c9a84c;
+}
+
+@layer base {
+  body {
+    @apply bg-white text-body text-primary font-normal;
+    font-feature-settings: "kern" 1;
+  }
+
+  /* Display principal (hero / landing). h2–h3: usar utilidades text-title-* en cada vista. */
+  h1 {
+    @apply font-bold text-display-sm text-primary sm:text-display-lg;
+  }
+
+  p {
+    @apply text-body text-primary;
+  }
+}
+
+/* Skip link: visible on keyboard focus (WCAG 2.4.1 Bypass Blocks) */
+.skip-to-content {
+  position: absolute;
+  left: 1rem;
+  top: 1rem;
+  z-index: 9999;
+  padding: 0.75rem 1rem;
+  clip: rect(0 0 0 0);
+  clip-path: inset(50%);
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  white-space: nowrap;
+  background-color: #1a1a2e;
+  color: #ffffff;
+  font-weight: 600;
+  font-size: 0.875rem;
+  border-radius: 0.5rem;
+  text-decoration: none;
+}
+
+.skip-to-content:focus {
+  clip: auto;
+  clip-path: none;
+  width: auto;
+  height: auto;
+  overflow: visible;
+  outline: 2px solid #c9a84c;
+  outline-offset: 2px;
+}

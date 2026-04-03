@@ -1,0 +1,28 @@
+{
+  "name": "Jean Cartier – Plataforma de Licencias & Marketplace",
+  "short_name": "Jean Cartier",
+  "description": "Plataforma oficial de Jean Cartier Herencia SRL: licencias y marketplace.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "background_color": "#ffffff",
+  "theme_color": "#1a1a2e",
+  "lang": "es-AR",
+  "dir": "ltr",
+  "categories": ["business", "shopping"],
+  "icons": [
+    {
+      "src": "/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}
