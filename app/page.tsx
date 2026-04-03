@@ -1,5 +1,8 @@
 import { HomeHealthPanel } from "@/components/home/home-health-panel";
+import { SiteAccessNav } from "@/components/site/site-access-nav";
+import { getPublicEnvironment } from "@/lib/app-env";
 import Image from "next/image";
+import Link from "next/link";
 
 /** Descriptive alt for brand mark: SEO + screen readers (WCAG 2.2 1.1.1). */
 const LOGO_ALT =
@@ -11,16 +14,17 @@ const WEBP_SRC_SET =
   "/images/brand/jc-monogram-64w.webp 64w, /images/brand/jc-monogram-128w.webp 128w, /images/brand/jc-monogram-256w.webp 256w, /images/brand/jc-monogram-512w.webp 512w";
 
 export default function HomePage() {
-  const appEnv = process.env.NEXT_PUBLIC_APP_ENV ?? "development";
+  const appEnv = getPublicEnvironment();
 
   return (
     <>
+      <SiteAccessNav />
       <a href="#contenido-principal" className="skip-to-content">
         Ir al contenido principal
       </a>
       <main
         id="contenido-principal"
-        className="flex min-h-screen flex-col items-center justify-center bg-gradient-soft px-4 py-16"
+        className="flex min-h-screen flex-col items-center justify-center bg-gradient-soft px-4 pb-16 pt-24 sm:pt-28"
       >
         <section className="mb-12 text-center" aria-labelledby="hero-heading">
           <div className="mx-auto mb-4 flex justify-center">
@@ -55,6 +59,14 @@ export default function HomePage() {
             />
           </h1>
           <HomeHealthPanel appEnv={appEnv} />
+          <p className="mt-10 font-inter text-nav font-semibold uppercase tracking-ribbon text-jc-gray-500">
+            <Link
+              href="/media-kit"
+              className="text-jc-gold underline-offset-4 hover:text-jc-black hover:underline"
+            >
+              Media Kit y guías de estilo
+            </Link>
+          </p>
         </section>
       </main>
     </>

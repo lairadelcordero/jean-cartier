@@ -1,13 +1,8 @@
+import { type HealthErr, type HealthOk, buildHealthPayload } from "@/lib/health/req-health";
 import { createClient } from "@/lib/supabase/server";
 import { NextResponse } from "next/server";
 
-type ComponentResult = {
-  status: "healthy" | "error";
-  latency_ms: number;
-  error?: string;
-};
-
-async function checkDatabase(): Promise<ComponentResult> {
+async function checkDatabase(): Promise<{ ok: boolean; latency_ms: number }> {
   const start = Date.now();
   try {
     const supabase = await createClient();
@@ -19,29 +14,24 @@ async function checkDatabase(): Promise<ComponentResult> {
     clearTimeout(timeout);
 
     if (error) {
-      // Fallback: try a raw auth check which doesn't require custom RPC
       const { error: authError } = await supabase.auth.getUser();
       if (authError && authError.message !== "Auth session missing!") {
         throw new Error(authError.message);
       }
     }
 
-    return { status: "healthy", latency_ms: Date.now() - start };
-  } catch (err) {
-    return {
-      status: "error",
-      latency_ms: Date.now() - start,
-      error: err instanceof Error ? err.message : "Unknown database error",
-    };
+    return { ok: true, latency_ms: Date.now() - start };
+  } catch {
+    return { ok: false, latency_ms: Date.now() - start };
   }
 }
 
-async function checkMercadoPago(): Promise<ComponentResult> {
+async function checkMercadoPago(): Promise<{ ok: boolean; latency_ms: number }> {
   const start = Date.now();
   try {
     const accessToken = process.env.MERCADO_PAGO_ACCESS_TOKEN;
     if (!accessToken || accessToken === "your-mp-access-token") {
-      throw new Error("MERCADO_PAGO_ACCESS_TOKEN not configured");
+      throw new Error("not configured");
     }
 
     const controller = new AbortController();
@@ -55,30 +45,18 @@ async function checkMercadoPago(): Promise<ComponentResult> {
     clearTimeout(timeout);
 
     if (!res.ok) {
-      throw new Error(`HTTP ${res.status}: ${res.statusText}`);
+      throw new Error(`HTTP ${res.status}`);
     }
 
-    return { status: "healthy", latency_ms: Date.now() - start };
-  } catch (err) {
-    return {
-      status: "error",
-      latency_ms: Date.now() - start,
-      error: err instanceof Error ? err.message : "Unknown Mercado Pago error",
-    };
+    return { ok: true, latency_ms: Date.now() - start };
+  } catch {
+    return { ok: false, latency_ms: Date.now() - start };
   }
 }
 
-export async function GET() {
-  const [database, mercado_pago] = await Promise.all([checkDatabase(), checkMercadoPago()]);
-
-  const allHealthy = database.status === "healthy" && mercado_pago.status === "healthy";
-
-  const body = {
-    status: allHealthy ? "healthy" : "degraded",
-    timestamp: new Date().toISOString(),
-    environment: process.env.NEXT_PUBLIC_APP_ENV ?? "development",
-    components: { database, mercado_pago },
-  };
-
-  return NextResponse.json(body, { status: allHealthy ? 200 : 503 });
+export async function GET(): Promise<NextResponse<HealthOk | HealthErr>> {
+  const [db, mp] = await Promise.all([checkDatabase(), checkMercadoPago()]);
+  const body = buildHealthPayload(db.ok, mp.ok);
+  const status = db.ok && mp.ok ? 200 : 503;
+  return NextResponse.json(body, { status });
 }

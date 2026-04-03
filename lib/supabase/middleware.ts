@@ -1,20 +1,25 @@
 import type { Database } from "@/types/database";
 import { createServerClient } from "@supabase/ssr";
+import type { User } from "@supabase/supabase-js";
 import { type NextRequest, NextResponse } from "next/server";
 import { getSupabasePublicKey, getSupabaseUrl } from "./env";
 
-export async function updateSession(request: NextRequest) {
-  const url = getSupabaseUrl().trim();
-  const key = getSupabasePublicKey().trim();
-
-  if (!url || !key) {
-    return NextResponse.next({ request });
-  }
+export async function updateSession(request: NextRequest): Promise<{
+  response: NextResponse;
+  user: User | null;
+}> {
+  const urlRaw = getSupabaseUrl().trim();
+  const keyRaw = getSupabasePublicKey().trim();
 
   let supabaseResponse = NextResponse.next({ request });
+  let user: User | null = null;
+
+  if (!urlRaw || !keyRaw) {
+    return { response: supabaseResponse, user: null };
+  }
 
   try {
-    const supabase = createServerClient<Database>(url, key, {
+    const supabase = createServerClient<Database>(urlRaw, keyRaw, {
       cookies: {
         getAll() {
           return request.cookies.getAll();
@@ -31,10 +36,14 @@ export async function updateSession(request: NextRequest) {
       },
     });
 
-    await supabase.auth.getUser();
+    const {
+      data: { user: u },
+    } = await supabase.auth.getUser();
+    user = u;
   } catch {
-    return NextResponse.next({ request });
+    supabaseResponse = NextResponse.next({ request });
+    user = null;
   }
 
-  return supabaseResponse;
+  return { response: supabaseResponse, user };
 }

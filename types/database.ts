@@ -1,9 +1,9 @@
 export type Json = string | number | boolean | null | { [key: string]: Json | undefined } | Json[];
 
-export type UserRole = "admin" | "licensee" | "customer";
-export type LicenseStatus = "active" | "pending" | "suspended";
+export type UserRole = "admin" | "licenciatario" | "customer";
+export type LicenseStatus = "active" | "inactive" | "pending";
 export type ProductStatus = "active" | "inactive";
-export type OrderStatus = "pending" | "paid" | "shipped" | "delivered" | "cancelled";
+export type OrderStatus = "pending" | "completed" | "cancelled";
 
 export interface Database {
   public: {
@@ -27,11 +27,12 @@ export interface Database {
           role?: UserRole;
           created_at?: string;
         };
+        Relationships: [];
       };
       licenses: {
         Row: {
           id: string;
-          licensee_id: string;
+          licenciatario_id: string;
           category: string;
           status: LicenseStatus;
           fee_amount: number | null;
@@ -42,7 +43,7 @@ export interface Database {
         };
         Insert: {
           id?: string;
-          licensee_id: string;
+          licenciatario_id: string;
           category: string;
           status?: LicenseStatus;
           fee_amount?: number | null;
@@ -53,7 +54,7 @@ export interface Database {
         };
         Update: {
           id?: string;
-          licensee_id?: string;
+          licenciatario_id?: string;
           category?: string;
           status?: LicenseStatus;
           fee_amount?: number | null;
@@ -62,13 +63,16 @@ export interface Database {
           end_date?: string | null;
           created_at?: string;
         };
+        Relationships: [];
       };
       products: {
         Row: {
           id: string;
           license_id: string;
           name: string;
+          sku: string;
           description: string | null;
+          price: number | null;
           price_retail: number | null;
           price_wholesale: number | null;
           stock: number;
@@ -76,12 +80,15 @@ export interface Database {
           images: string[] | null;
           status: ProductStatus;
           created_at: string;
+          updated_at: string;
         };
         Insert: {
           id?: string;
           license_id: string;
           name: string;
+          sku: string;
           description?: string | null;
+          price?: number | null;
           price_retail?: number | null;
           price_wholesale?: number | null;
           stock?: number;
@@ -89,12 +96,15 @@ export interface Database {
           images?: string[] | null;
           status?: ProductStatus;
           created_at?: string;
+          updated_at?: string;
         };
         Update: {
           id?: string;
           license_id?: string;
           name?: string;
+          sku?: string;
           description?: string | null;
+          price?: number | null;
           price_retail?: number | null;
           price_wholesale?: number | null;
           stock?: number;
@@ -102,30 +112,33 @@ export interface Database {
           images?: string[] | null;
           status?: ProductStatus;
           created_at?: string;
+          updated_at?: string;
         };
+        Relationships: [];
       };
       orders: {
         Row: {
           id: string;
-          customer_id: string;
+          user_id: string;
           status: OrderStatus;
-          total_amount: number | null;
+          total: number | null;
           created_at: string;
         };
         Insert: {
           id?: string;
-          customer_id: string;
+          user_id: string;
           status?: OrderStatus;
-          total_amount?: number | null;
+          total?: number | null;
           created_at?: string;
         };
         Update: {
           id?: string;
-          customer_id?: string;
+          user_id?: string;
           status?: OrderStatus;
-          total_amount?: number | null;
+          total?: number | null;
           created_at?: string;
         };
+        Relationships: [];
       };
       order_items: {
         Row: {
@@ -133,26 +146,35 @@ export interface Database {
           order_id: string;
           product_id: string;
           quantity: number;
-          unit_price: number | null;
+          price: number | null;
+          created_at: string;
         };
         Insert: {
           id?: string;
           order_id: string;
           product_id: string;
           quantity: number;
-          unit_price?: number | null;
+          price?: number | null;
+          created_at?: string;
         };
         Update: {
           id?: string;
           order_id?: string;
           product_id?: string;
           quantity?: number;
-          unit_price?: number | null;
+          price?: number | null;
+          created_at?: string;
         };
+        Relationships: [];
       };
     };
     Views: Record<string, never>;
-    Functions: Record<string, never>;
+    Functions: {
+      health_check: {
+        Args: Record<string, never>;
+        Returns: number;
+      };
+    };
     Enums: {
       user_role: UserRole;
       license_status: LicenseStatus;
