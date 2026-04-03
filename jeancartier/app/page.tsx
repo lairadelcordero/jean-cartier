@@ -18,7 +18,7 @@ export default function HomePage() {
       </a>
       <main
         id="contenido-principal"
-        className="flex min-h-screen flex-col items-center justify-center bg-white px-4 py-16"
+        className="flex min-h-screen flex-col items-center justify-center bg-gradient-soft px-4 py-16"
       >
         <section className="mb-12 text-center" aria-labelledby="hero-heading">
           <div className="mx-auto mb-4 flex justify-center">
@@ -36,7 +36,7 @@ export default function HomePage() {
                 priority
                 fetchPriority="high"
                 sizes="(max-width: 640px) 80px, 128px"
-                className="h-20 w-20 rounded-2xl object-contain shadow-lg sm:h-28 sm:w-28"
+                className="h-20 w-20 rounded-2xl border border-jc-g2 bg-jc-white object-contain shadow-jc sm:h-28 sm:w-28"
               />
             </picture>
           </div>

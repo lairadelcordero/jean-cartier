@@ -1,4 +1,4 @@
-import { mkdir } from "node:fs/promises";
+import { copyFile, mkdir } from "node:fs/promises";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import sharp from "sharp";
@@ -51,13 +51,8 @@ async function main() {
     .png()
     .toFile(join(root, "public/apple-touch-icon.png"));
 
-  await sharp(src)
-    .resize(512, 512, {
-      fit: "contain",
-      background: { r: 255, g: 255, b: 255, alpha: 1 },
-    })
-    .png()
-    .toFile(join(root, "app/icon.png"));
+  // Favicon: mismo archivo que la marca (sin re-encode) para pixel-perfect con el logo entregado.
+  await copyFile(src, join(root, "app/icon.png"));
 
   await sharp(src)
     .resize(192, 192, {

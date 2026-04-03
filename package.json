@@ -1,0 +1,15 @@
+{
+  "name": "jean-cartier",
+  "private": true,
+  "description": "Root folder; Next.js app lives in jeancartier/",
+  "scripts": {
+    "dev": "pnpm -C jeancartier dev",
+    "dev:clean": "pnpm -C jeancartier dev:clean",
+    "dev:turbo": "pnpm -C jeancartier dev:turbo",
+    "build": "pnpm -C jeancartier build",
+    "build:clean": "pnpm -C jeancartier build:clean",
+    "start": "pnpm -C jeancartier start",
+    "lint": "pnpm -C jeancartier lint",
+    "test": "pnpm -C jeancartier test"
+  }
+}

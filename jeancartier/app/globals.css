@@ -3,27 +3,37 @@
 @tailwind utilities;
 
 :root {
-  --color-primary: #1a1a2e;
-  --color-accent: #c9a84c;
+  --jc-white: #ffffff;
+  --jc-black: #0c0d0e;
+  --jc-g1: #f4f7fb;
+  --jc-g2: #e6ecf4;
+  --jc-g3: #cdd6e3;
+  --jc-g4: #94a0b0;
+  --jc-g5: #5f6b78;
+  --jc-g6: #2e343c;
+
+  /* Fustat variable (eje wght, rango 200–800). Cambiá aquí para toda la UI. */
+  --fustat-wght-body: 400;
+  --fustat-wght-emphasis: 500;
+  --fustat-wght-heading: 600;
+  --fustat-wght-display: 700;
 }
 
 @layer base {
   body {
-    @apply bg-white text-body text-primary font-normal;
+    @apply bg-gradient-page text-body font-body text-jc-g6 antialiased;
     font-feature-settings: "kern" 1;
   }
 
-  /* Display principal (hero / landing). h2–h3: usar utilidades text-title-* en cada vista. */
   h1 {
-    @apply font-bold text-display-sm text-primary sm:text-display-lg;
+    @apply font-display text-display-sm text-jc-black sm:text-display-lg;
   }
 
   p {
-    @apply text-body text-primary;
+    @apply text-body text-jc-g6;
   }
 }
 
-/* Skip link: visible on keyboard focus (WCAG 2.4.1 Bypass Blocks) */
 .skip-to-content {
   position: absolute;
   left: 1rem;
@@ -36,9 +46,9 @@
   height: 1px;
   overflow: hidden;
   white-space: nowrap;
-  background-color: #1a1a2e;
-  color: #ffffff;
-  font-weight: 600;
+  background-color: var(--jc-black);
+  color: var(--jc-white);
+  font-weight: var(--fustat-wght-heading);
   font-size: 0.875rem;
   border-radius: 0.5rem;
   text-decoration: none;
@@ -50,6 +60,6 @@
   width: auto;
   height: auto;
   overflow: visible;
-  outline: 2px solid #c9a84c;
+  outline: 2px solid var(--jc-g4);
   outline-offset: 2px;
 }

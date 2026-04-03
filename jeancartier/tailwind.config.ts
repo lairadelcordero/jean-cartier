@@ -1,12 +1,8 @@
 import type { Config } from "tailwindcss";
 
 /**
- * Sistema visual tipo grandes almacenes (referencia: elcorteingles.es):
- * - Una sola familia sans para UI, menús y titulares (peso y tracking marcan jerarquía).
- * - Menús / rúbricas: pequeño, mayúsculas, tracking amplio, semibold.
- * - Cuerpo: 16px, interlineado cómodo.
- * - H1–H3: pesos 600–700, display con interlineado ajustado.
- * Colores adaptados a Jean Cartier (no verde ECI).
+ * Tipografía: Fustat variable (next/font → --font-sans). Pesos vía CSS: --fustat-wght-* en globals.css.
+ * Color: blanco, negro, 6 grises fríos y gradientes (jc.*).
  */
 const config: Config = {
   content: [
@@ -17,8 +13,18 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
-        primary: "#1a1a2e",
-        accent: "#c9a84c",
+        jc: {
+          white: "#ffffff",
+          /** Negro suave (texto principal) */
+          black: "#0c0d0e",
+          /** 6 grises, claros tirando a frío (slate) */
+          g1: "#f4f7fb",
+          g2: "#e6ecf4",
+          g3: "#cdd6e3",
+          g4: "#94a0b0",
+          g5: "#5f6b78",
+          g6: "#2e343c",
+        },
       },
       fontFamily: {
         sans: [
@@ -31,30 +37,40 @@ const config: Config = {
           "sans-serif",
         ],
       },
+      fontWeight: {
+        body: "var(--fustat-wght-body)",
+        emphasis: "var(--fustat-wght-emphasis)",
+        heading: "var(--fustat-wght-heading)",
+        display: "var(--fustat-wght-display)",
+      },
       fontSize: {
-        /** Rúbricas tipo “sección” en mega-menú / pies (11px, tracking). */
         nav: ["0.6875rem", { lineHeight: "1rem", letterSpacing: "0.08em" }],
-        /** Texto de menú principal y categorías (13px). */
         menu: ["0.8125rem", { lineHeight: "1.25rem", letterSpacing: "0.06em" }],
-        /** Cuerpo estándar retail (16px). */
         body: ["1rem", { lineHeight: "1.5rem" }],
-        /** Entradilla / destacados. */
         lead: ["1.125rem", { lineHeight: "1.65rem" }],
-        /** H3, fichas, subtítulos. */
         "title-sm": ["1.125rem", { lineHeight: "1.35rem", letterSpacing: "-0.01em" }],
-        /** H2 de bloque. */
         "title-md": ["1.375rem", { lineHeight: "1.3rem", letterSpacing: "-0.015em" }],
-        /** H2 hero secundario. */
         "title-lg": ["1.75rem", { lineHeight: "1.25rem", letterSpacing: "-0.02em" }],
-        /** H1 mobile / display compacto. */
         "display-sm": ["2.25rem", { lineHeight: "1.1", letterSpacing: "-0.02em" }],
-        /** H1 desktop. */
         "display-lg": ["3rem", { lineHeight: "1.05", letterSpacing: "-0.025em" }],
       },
       letterSpacing: {
-        /** Menús y etiquetas en mayúsculas (estilo catálogo). */
         menu: "0.06em",
         ribbon: "0.08em",
+      },
+      backgroundImage: {
+        /** Fondo general: bruma gris-azulada */
+        "gradient-page": "linear-gradient(168deg, #f6f8fc 0%, #eef2f9 42%, #e3eaf3 100%)",
+        /** Variante más suave (hero / secciones) */
+        "gradient-mist": "linear-gradient(180deg, #fafbfd 0%, #f2f5fa 55%, #e9eff6 100%)",
+        /** Sutil radial + degradado (profundidad) */
+        "gradient-soft":
+          "radial-gradient(ellipse 100% 60% at 50% -15%, rgba(227, 235, 245, 0.9) 0%, transparent 50%), linear-gradient(180deg, #f8fafc 0%, #eef2f8 100%)",
+        /** Panel / tarjeta sobre fondo */
+        "gradient-surface": "linear-gradient(145deg, #ffffff 0%, #f7f9fc 100%)",
+      },
+      boxShadow: {
+        jc: "0 1px 2px rgba(14, 22, 35, 0.06), 0 4px 16px rgba(14, 22, 35, 0.04)",
       },
     },
   },

@@ -1,13 +1,13 @@
 import { SiteJsonLd } from "@/components/site-json-ld";
 import { getAbsoluteUrl, getSiteUrl, siteConfig } from "@/lib/site-config";
 import type { Metadata, Viewport } from "next";
-import { Source_Sans_3 } from "next/font/google";
+import { Fustat } from "next/font/google";
 import "./globals.css";
 
-/** Retail-style humanist sans (misma línea visual que grandes superficies ES: cuerpo + menús + titulares en una familia). */
-const sourceSans = Source_Sans_3({
+/** Fustat (Google Fonts): variable font, eje wght 200–800. --font-sans la inyecta next/font. */
+const fustat = Fustat({
   subsets: ["latin", "latin-ext"],
-  weight: ["400", "500", "600", "700"],
+  weight: "variable",
   display: "swap",
   variable: "--font-sans",
 });
@@ -20,8 +20,8 @@ export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
   themeColor: [
-    { media: "(prefers-color-scheme: light)", color: "#ffffff" },
-    { media: "(prefers-color-scheme: dark)", color: "#1a1a2e" },
+    { media: "(prefers-color-scheme: light)", color: "#f4f7fb" },
+    { media: "(prefers-color-scheme: dark)", color: "#2e343c" },
   ],
   colorScheme: "light",
 };
@@ -116,7 +116,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang={siteConfig.language} className={sourceSans.variable}>
+    <html lang={siteConfig.language} className={fustat.variable}>
       <body className="min-h-screen font-sans antialiased">
         <SiteJsonLd />
         {children}
