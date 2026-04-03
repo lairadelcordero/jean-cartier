@@ -63,8 +63,7 @@ const config: Config = {
         ribbon: "0.08em",
       },
       backgroundImage: {
-        "gradient-page":
-          "linear-gradient(168deg, #FAFAFA 0%, #F5F5F5 45%, #EEEEEE 100%)",
+        "gradient-page": "linear-gradient(168deg, #FAFAFA 0%, #F5F5F5 45%, #EEEEEE 100%)",
         "gradient-mist": "linear-gradient(180deg, #FFFFFF 0%, #F5F5F5 55%, #EBEBEB 100%)",
         "gradient-soft":
           "radial-gradient(ellipse 100% 55% at 50% -12%, rgba(201, 169, 97, 0.06) 0%, transparent 45%), linear-gradient(180deg, #FDFDFD 0%, #F2F2F2 100%)",
