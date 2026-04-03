@@ -1,15 +1,21 @@
 import { SiteJsonLd } from "@/components/site-json-ld";
 import { getAbsoluteUrl, getSiteUrl, siteConfig } from "@/lib/site-config";
 import type { Metadata, Viewport } from "next";
-import { Fustat } from "next/font/google";
+import { Fustat, Inter } from "next/font/google";
 import "./globals.css";
 
-/** Fustat (Google Fonts): variable font, eje wght 200–800. --font-sans la inyecta next/font. */
+/** Manual de marca: Fustat (primaria) + Inter (secundaria / UI), vía theme.css en Figma Make. */
 const fustat = Fustat({
   subsets: ["latin", "latin-ext"],
   weight: "variable",
   display: "swap",
   variable: "--font-sans",
+});
+
+const inter = Inter({
+  subsets: ["latin", "latin-ext"],
+  display: "swap",
+  variable: "--font-inter",
 });
 
 const siteUrl = getSiteUrl();
@@ -20,8 +26,8 @@ export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
   themeColor: [
-    { media: "(prefers-color-scheme: light)", color: "#f4f7fb" },
-    { media: "(prefers-color-scheme: dark)", color: "#2e343c" },
+    { media: "(prefers-color-scheme: light)", color: "#F5F5F5" },
+    { media: "(prefers-color-scheme: dark)", color: "#1A1A1A" },
   ],
   colorScheme: "light",
 };
@@ -116,7 +122,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang={siteConfig.language} className={fustat.variable}>
+    <html lang={siteConfig.language} className={`${fustat.variable} ${inter.variable}`}>
       <body className="min-h-screen font-sans antialiased">
         <SiteJsonLd />
         {children}

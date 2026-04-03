@@ -20,9 +20,9 @@ type HealthData = {
 
 function StatusBadge({ status }: { status: ComponentStatus["status"] }) {
   const colors: Record<ComponentStatus["status"], string> = {
-    healthy: "border-jc-g3 bg-jc-g1 text-jc-g6",
-    error: "border-jc-g5 bg-jc-g2 text-jc-black",
-    checking: "border-jc-g3 bg-jc-white text-jc-g5",
+    healthy: "border-jc-gold/40 bg-jc-gray-50 text-jc-gray-900",
+    error: "border-jc-gray-300 bg-jc-gray-100 text-jc-black",
+    checking: "border-jc-gray-100 bg-jc-white text-jc-gray-500",
   };
   const labels: Record<ComponentStatus["status"], string> = {
     healthy: "Operacional",
@@ -30,13 +30,13 @@ function StatusBadge({ status }: { status: ComponentStatus["status"] }) {
     checking: "Verificando…",
   };
   const dots: Record<ComponentStatus["status"], string> = {
-    healthy: "bg-jc-g5",
+    healthy: "bg-jc-gold",
     error: "bg-jc-black",
-    checking: "bg-jc-g4",
+    checking: "bg-jc-gray-300",
   };
   return (
     <span
-      className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-0.5 text-xs font-medium ${colors[status]}`}
+      className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-0.5 text-xs font-medium font-inter ${colors[status]}`}
     >
       <span className={`h-2 w-2 rounded-full ${dots[status]}`} aria-hidden />
       {labels[status]}
@@ -46,14 +46,14 @@ function StatusBadge({ status }: { status: ComponentStatus["status"] }) {
 
 function EnvBadge({ env }: { env: string }) {
   const colors: Record<string, string> = {
-    production: "border-jc-g4 bg-jc-g2 text-jc-black",
-    staging: "border-jc-g3 bg-jc-g1 text-jc-g6",
-    development: "border-jc-g3 bg-jc-white text-jc-g5",
+    production: "border-jc-gray-300 bg-jc-gray-100 text-jc-black",
+    staging: "border-jc-gray-100 bg-jc-gray-50 text-jc-gray-700",
+    development: "border-jc-gray-100 bg-jc-white text-jc-gray-500",
   };
   const color = colors[env] ?? colors.development;
   return (
     <span
-      className={`rounded-full border px-3 py-0.5 text-xs font-semibold uppercase tracking-wide ${color}`}
+      className={`rounded-full border px-3 py-0.5 text-xs font-semibold uppercase tracking-wide font-inter ${color}`}
     >
       {env}
     </span>
@@ -83,13 +83,13 @@ export function HomeHealthPanel({ appEnv }: { appEnv: string }) {
 
   return (
     <>
-      <p className="mb-4 text-lead font-medium text-jc-g5">
+      <p className="mb-4 text-lead font-medium text-jc-gold font-inter">
         Plataforma de Licencias &amp; Marketplace
       </p>
       <EnvBadge env={appEnv} />
 
       <section
-        className="mt-12 w-full max-w-lg rounded-2xl border border-jc-g2 bg-gradient-surface p-6 shadow-jc"
+        className="mt-12 w-full max-w-lg rounded-brand border border-jc-gray-100 bg-gradient-surface p-6 shadow-jc"
         aria-labelledby="estado-sistema-heading"
         aria-live="polite"
         aria-busy={loading}
@@ -97,7 +97,7 @@ export function HomeHealthPanel({ appEnv }: { appEnv: string }) {
         <div className="mb-4 flex items-center justify-between">
           <h2
             id="estado-sistema-heading"
-            className="text-menu font-semibold uppercase tracking-ribbon text-jc-g4"
+            className="text-menu font-semibold uppercase tracking-ribbon text-jc-gray-500 font-inter"
           >
             Estado del Sistema
           </h2>
@@ -105,25 +105,27 @@ export function HomeHealthPanel({ appEnv }: { appEnv: string }) {
             type="button"
             onClick={fetchHealth}
             disabled={loading}
-            className="rounded-lg border border-jc-g2 bg-jc-white px-3 py-1 text-nav font-semibold uppercase tracking-ribbon text-jc-g5 transition-colors hover:bg-jc-g1 disabled:opacity-40"
+            className="rounded-brand border border-jc-gray-100 bg-jc-white px-3 py-1 text-nav font-semibold uppercase tracking-ribbon text-jc-gray-500 transition-colors hover:bg-jc-gray-50 disabled:opacity-40 font-inter"
           >
             {loading ? "Verificando…" : "Actualizar"}
           </button>
         </div>
 
         {loading && !health ? (
-          <p className="py-4 text-center text-sm text-jc-g4">Verificando componentes…</p>
+          <p className="py-4 text-center text-sm text-jc-gray-500 font-inter">Verificando componentes…</p>
         ) : health ? (
           <>
-            <ul className="divide-y divide-jc-g2">
+            <ul className="divide-y divide-jc-gray-100">
               <li className="flex items-center justify-between py-3">
                 <div>
                   <p className="text-sm font-medium text-jc-black">Base de Datos</p>
                   {health.components.database.latency_ms !== undefined && (
-                    <p className="text-xs text-jc-g4">{health.components.database.latency_ms} ms</p>
+                    <p className="text-xs text-jc-gray-500 font-inter">
+                      {health.components.database.latency_ms} ms
+                    </p>
                   )}
                   {health.components.database.error && (
-                    <p className="mt-0.5 max-w-xs truncate text-xs text-jc-g6">
+                    <p className="mt-0.5 max-w-xs truncate text-xs text-jc-gray-700 font-inter">
                       {health.components.database.error}
                     </p>
                   )}
@@ -134,12 +136,12 @@ export function HomeHealthPanel({ appEnv }: { appEnv: string }) {
                 <div>
                   <p className="text-sm font-medium text-jc-black">Mercado Pago</p>
                   {health.components.mercado_pago.latency_ms !== undefined && (
-                    <p className="text-xs text-jc-g4">
+                    <p className="text-xs text-jc-gray-500 font-inter">
                       {health.components.mercado_pago.latency_ms} ms
                     </p>
                   )}
                   {health.components.mercado_pago.error && (
-                    <p className="mt-0.5 max-w-xs truncate text-xs text-jc-g6">
+                    <p className="mt-0.5 max-w-xs truncate text-xs text-jc-gray-700 font-inter">
                       {health.components.mercado_pago.error}
                     </p>
                   )}
@@ -147,15 +149,15 @@ export function HomeHealthPanel({ appEnv }: { appEnv: string }) {
                 <StatusBadge status={health.components.mercado_pago.status} />
               </li>
             </ul>
-            <div className="mt-4 flex items-center justify-between border-t border-jc-g2 pt-3">
-              <p className="text-xs text-jc-g4">
+            <div className="mt-4 flex items-center justify-between border-t border-jc-gray-100 pt-3">
+              <p className="text-xs text-jc-gray-500 font-inter">
                 Última verificación: {new Date(health.timestamp).toLocaleTimeString("es-AR")}
               </p>
               <StatusBadge status={health.status === "healthy" ? "healthy" : "error"} />
             </div>
           </>
         ) : (
-          <p className="py-4 text-center text-sm text-jc-g6">
+          <p className="py-4 text-center text-sm text-jc-gray-700 font-inter">
             No se pudo obtener el estado del sistema.
           </p>
         )}
