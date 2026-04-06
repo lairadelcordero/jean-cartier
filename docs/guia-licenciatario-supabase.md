@@ -12,6 +12,15 @@ Si al correr `pnpm promote:licenciatario …` ves un error del tipo **Could not 
 
 **Comprobación rápida:** en el dashboard, **Table Editor** → schema **public** → deberían existir tablas como **`users`**, **`licenses`**, **`products`**, etc. Si no están, seguí una de estas opciones:
 
+### Opción 0 — Un solo pegado en SQL Editor (la más simple)
+
+1. En tu repo local, abrí el archivo **`supabase/remote_schema_once.sql`** (es la concatenación de las tres migraciones, con un comentario arriba).
+2. Copiá **todo** el contenido.
+3. Supabase Dashboard → **SQL Editor** → *New query* → pegá → **Run**.
+4. Verificá en **Table Editor** que exista **`public.users`**.
+
+**Importante:** pensado para proyecto **nuevo** o sin este esquema. Si ya tenés tablas con otros nombres/reglas, puede chocar; ahí usá CLI o arreglá a mano según el error.
+
 ### Opción A — Supabase CLI (recomendado)
 
 1. Instalá la CLI: [Supabase CLI](https://supabase.com/docs/guides/cli).

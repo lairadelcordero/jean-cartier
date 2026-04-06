@@ -16,7 +16,8 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "optimize:images": "node scripts/optimize-images.mjs",
-    "promote:licenciatario": "node scripts/promote-licenciatario.mjs"
+    "promote:licenciatario": "node scripts/promote-licenciatario.mjs",
+    "db:bundle-remote-schema": "node scripts/bundle-remote-schema.mjs"
   },
   "dependencies": {
     "@mercadopago/sdk-js": "^0.0.3",

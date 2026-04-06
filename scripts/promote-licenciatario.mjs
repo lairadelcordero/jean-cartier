@@ -53,8 +53,9 @@ function printSchemaHelp() {
   console.error(`
 El proyecto de Supabase de tu URL no tiene tablas del repo (p. ej. public.users) o la API no las expone.
   • Revisá que NEXT_PUBLIC_SUPABASE_URL y las keys sean del MISMO proyecto (Settings → API).
-  • Aplicá las migraciones SQL en orden en SQL Editor, o con Supabase CLI: db push.
-    Archivos: supabase/migrations/20240101000000_initial_schema.sql → …req1… → …req2…
+  • Lo más rápido sin CLI: Supabase Dashboard → SQL Editor → pegar TODO el archivo:
+    supabase/remote_schema_once.sql  →  Run (una sola vez en proyecto vacío / sin este esquema).
+  • Alternativa: supabase db push, o los 3 archivos en supabase/migrations/ en orden.
   • Guía: docs/guia-licenciatario-supabase.md (sección «Esquema en la nube»).`);
 }
 

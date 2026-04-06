@@ -194,6 +194,8 @@ The database check calls the Supabase RPC `health_check` (see migrations); Merca
 2. REQ-1 (RLS, `health_check`, roles, columnas orders/users, etc.): [`supabase/migrations/20260203120000_req1_health_rls_schema.sql`](supabase/migrations/20260203120000_req1_health_rls_schema.sql)
 3. REQ-2 (portal): SKU, `updated_at`, RLS de catálogo, trigger `auth.users` → `public.users`: [`supabase/migrations/20260403120000_req2_licenciatario_portal.sql`](supabase/migrations/20260403120000_req2_licenciatario_portal.sql)
 
+**Proyecto en la nube sin tablas:** pegá en SQL Editor el archivo único [`supabase/remote_schema_once.sql`](supabase/remote_schema_once.sql) (las tres migraciones seguidas). Ver [`docs/guia-licenciatario-supabase.md`](docs/guia-licenciatario-supabase.md).
+
 Desarrollo local: [`supabase/seed.sql`](supabase/seed.sql) (usuario de prueba licenciatario; requiere Docker + `supabase db reset` o equivalente).
 
 Types in [`types/database.ts`](types/database.ts) should match the DB **after** migrations are applied.

@@ -41,11 +41,17 @@ export async function AccessDeniedDevHint() {
           <strong className="font-medium text-jc-black">Diagnóstico (dev):</strong> no se pudo leer{" "}
           <code className="text-xs">public.users</code>: {error.message}
         </p>
+        <p className="mb-2">
+          Tu proyecto en la nube todavía no tiene las tablas de la app. En el{" "}
+          <strong className="text-jc-black">mismo</strong> proyecto que tu{" "}
+          <code className="text-xs">NEXT_PUBLIC_SUPABASE_URL</code>: Dashboard →{" "}
+          <strong className="text-jc-black">SQL Editor</strong> → abrí en el repo{" "}
+          <code className="text-xs">supabase/remote_schema_once.sql</code>, copiá todo, pegá, Run.
+          Luego <code className="text-xs">pnpm promote:licenciatario …</code> y volvé a entrar.
+        </p>
         <p>
-          Suele faltar la tabla o migraciones en el proyecto de Supabase de tu{" "}
-          <code className="text-xs">.env.local</code>. Ver{" "}
-          <code className="text-xs">docs/guia-licenciatario-supabase.md</code> → «Esquema en la
-          nube».
+          Más opciones en <code className="text-xs">docs/guia-licenciatario-supabase.md</code>{" "}
+          («Esquema en la nube»).
         </p>
       </div>
     );
