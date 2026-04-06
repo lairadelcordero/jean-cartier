@@ -20,8 +20,8 @@ export async function GET(_request: Request, context: RouteContext) {
   const owns = await assertOwnLicense(supabase, user.id, licenseId);
   if (!owns) {
     return NextResponse.json(
-      { error: "Unauthorized", message: "You do not have permission to access this license" },
-      { status: 401 }
+      { error: "Not found", message: "License or product not found" },
+      { status: 404 }
     );
   }
 
@@ -49,8 +49,8 @@ export async function POST(request: Request, context: RouteContext) {
   const owns = await assertOwnLicense(supabase, user.id, licenseId);
   if (!owns) {
     return NextResponse.json(
-      { error: "Unauthorized", message: "You do not have permission to access this license" },
-      { status: 401 }
+      { error: "Not found", message: "License or product not found" },
+      { status: 404 }
     );
   }
 

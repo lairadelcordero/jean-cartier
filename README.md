@@ -31,21 +31,31 @@ Plataforma oficial de licencias y marketplace de **Jean Cartier Herencia SRL**.
 jean-cartier/
 ├── app/
 │   ├── layout.tsx
-│   ├── page.tsx              # Hello world landing page
-│   ├── auth/login|signup/    # REQ-1 auth scaffold (basic UI)
-│   ├── dashboard/            # Protected example route
-│   ├── api/health/           # GET /api/health (REQ-1 contract)
-│   └── api/auth/callback/    # Supabase OAuth / email link callback
+│   ├── page.tsx                    # Landing + menú de acceso
+│   ├── media-kit/                  # Manual de marca (UI kit)
+│   ├── auth/login|signup/
+│   ├── dashboard/                  # Panel genérico protegido
+│   ├── licenciatario/            # Portal licenciatario (REQ-2)
+│   ├── api/health/
+│   ├── api/auth/callback/
+│   └── api/licenciatario/        # APIs portal (licencias + productos)
 ├── components/
+│   ├── site/site-access-nav.tsx
+│   ├── auth/
+│   ├── licenciatario/
+│   └── media-kit/
 ├── lib/
 │   ├── supabase/
-│   └── health/               # REQ-1 health payload helpers
-├── types/
-│   └── database.ts           # Hand-maintained DB types (align with migrations)
+│   ├── health/
+│   └── licenciatario/            # auth helpers, validación, serializers
+├── types/database.ts
 ├── supabase/migrations/
-├── middleware.ts             # Session refresh + /dashboard protection
+├── supabase/seed.sql             # Datos de desarrollo local (tras db reset)
+├── proxy.ts                      # Next.js 16: sesión + rutas protegidas
 ├── .env.example
 ├── biome.json
+├── docs/
+│   └── guia-licenciatario-supabase.md  # Login + portal (Supabase cloud, paso a paso)
 ├── vitest.config.ts
 └── README.md
 ```
@@ -101,6 +111,14 @@ pnpm dev
 
 Open [http://localhost:777](http://localhost:777) (dev script uses port **777**).
 
+### 6. Login y portal licenciatario (Supabase cloud)
+
+Guía paso a paso: **[docs/guia-licenciatario-supabase.md](docs/guia-licenciatario-supabase.md)**.
+
+**Atajo:** con `SUPABASE_SERVICE_ROLE_KEY` real en `.env.local` y la cuenta ya creada en Auth:
+
+`pnpm promote:licenciatario tu-email@ejemplo.com`
+
 ---
 
 ## Contributing (short)
@@ -108,6 +126,14 @@ Open [http://localhost:777](http://localhost:777) (dev script uses port **777**)
 1. Branch from `develop` or `main` (team convention).
 2. Run `pnpm lint`, `pnpm typecheck`, and `pnpm test` before pushing.
 3. Open a PR; CI runs Biome, Vitest, TypeScript check, and `next build`.
+
+---
+
+## QA y cobertura de tests
+
+- **Automatizado hoy:** contrato de `/api/health`, validación de productos (`lib/licenciatario/product-validation.test.ts`), referencias de licencia / serializers (`lib/licenciatario/serializers.test.ts`). **CI verde no cubre** flujos E2E del portal ni todas las rutas `/api/licenciatario`.
+- **Manual recomendado:** login licenciatario → dashboard → detalle de licencia → CRUD productos (incl. SKU duplicado y desactivar). **RLS:** validar en un proyecto Supabase real con migraciones + `seed.sql` (local) o datos propios.
+- **Deploy / GitHub Actions:** el job que despliega depende de secretos `VERCEL_*`; sin ellos el workflow puede fallar aunque el build local pase con `.env.local`.
 
 ---
 
@@ -123,6 +149,7 @@ Open [http://localhost:777](http://localhost:777) (dev script uses port **777**)
 | `pnpm typecheck` | TypeScript `tsc --noEmit` |
 | `pnpm test` | Run Vitest tests |
 | `pnpm test:watch` | Run Vitest in watch mode |
+| `pnpm promote:licenciatario <email>` | (Dev) Promueve usuario a `licenciatario` + licencia ejemplo vía service role |
 
 ---
 
@@ -161,12 +188,15 @@ The database check calls the Supabase RPC `health_check` (see migrations); Merca
 
 ---
 
-## Database schema (REQ-1)
+## Database schema (REQ-1 / REQ-2)
 
 1. Baseline: [`supabase/migrations/20240101000000_initial_schema.sql`](supabase/migrations/20240101000000_initial_schema.sql)
-2. Alignment (REQ-1 naming, RLS admin on `users`, `health_check`, orders/user columns, `licenciatario` role, etc.): [`supabase/migrations/20260203120000_req1_health_rls_schema.sql`](supabase/migrations/20260203120000_req1_health_rls_schema.sql)
+2. REQ-1 (RLS, `health_check`, roles, columnas orders/users, etc.): [`supabase/migrations/20260203120000_req1_health_rls_schema.sql`](supabase/migrations/20260203120000_req1_health_rls_schema.sql)
+3. REQ-2 (portal): SKU, `updated_at`, RLS de catálogo, trigger `auth.users` → `public.users`: [`supabase/migrations/20260403120000_req2_licenciatario_portal.sql`](supabase/migrations/20260403120000_req2_licenciatario_portal.sql)
 
-Types in [`types/database.ts`](types/database.ts) should match the DB **after** both migrations are applied.
+Desarrollo local: [`supabase/seed.sql`](supabase/seed.sql) (usuario de prueba licenciatario; requiere Docker + `supabase db reset` o equivalente).
+
+Types in [`types/database.ts`](types/database.ts) should match the DB **after** migrations are applied.
 
 ---
 
@@ -177,7 +207,7 @@ Types in [`types/database.ts`](types/database.ts) should match the DB **after** 
 1. Import the repository in [Vercel](https://vercel.com/).
 2. Set environment variables (mirror `.env.example`): Supabase URL/keys, `MERCADO_PAGO_ACCESS_TOKEN`, `NEXT_PUBLIC_MERCADO_PAGO_PUBLIC_KEY`, `NEXT_PUBLIC_ENVIRONMENT=production`, `NEXT_PUBLIC_APP_URL`, `NEXT_PUBLIC_SITE_URL`.
 3. Add Supabase redirect URL: `https://<your-domain>/api/auth/callback`.
-4. CI: on push to `main`, the [GitHub Actions workflow](.github/workflows/ci.yml) runs checks and deploys with `vercel` when `VERCEL_TOKEN`, `VERCEL_ORG_ID`, and `VERCEL_PROJECT_ID` secrets are configured.
+4. CI: on push to `main`, the [GitHub Actions workflow](.github/workflows/ci.yml) runs checks and deploys with `vercel` when `VERCEL_TOKEN`, `VERCEL_ORG_ID`, and `VERCEL_PROJECT_ID` secrets are configured. Pushes con HTTPS y OAuth sin scope **`workflow`** pueden rechazar cambios en `.github/workflows/`; usá un token con ese permiso o SSH.
 
 ---
 

@@ -15,7 +15,8 @@
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
     "test:watch": "vitest",
-    "optimize:images": "node scripts/optimize-images.mjs"
+    "optimize:images": "node scripts/optimize-images.mjs",
+    "promote:licenciatario": "node scripts/promote-licenciatario.mjs"
   },
   "dependencies": {
     "@mercadopago/sdk-js": "^0.0.3",

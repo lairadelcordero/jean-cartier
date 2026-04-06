@@ -13,7 +13,7 @@ function isLicenciatarioApi(pathname: string): boolean {
   return pathname.startsWith("/api/licenciatario");
 }
 
-export async function middleware(req: NextRequest) {
+export async function proxy(req: NextRequest) {
   const { response, user } = await updateSession(req);
   const { pathname } = req.nextUrl;
 
