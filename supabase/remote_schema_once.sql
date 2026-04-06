@@ -489,7 +489,7 @@ BEGIN
     WHEN undefined_object THEN NULL;
   END;
   BEGIN
-    ALTER PUBLICATION supabase_realtime ADD TABLE public/licenses;
+    ALTER PUBLICATION supabase_realtime ADD TABLE public.licenses;
   EXCEPTION
     WHEN duplicate_object THEN NULL;
     WHEN undefined_object THEN NULL;
