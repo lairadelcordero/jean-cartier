@@ -6,6 +6,31 @@ La app local debe usar el mismo proyecto que configuraste en `.env.local` (`NEXT
 
 ---
 
+## Esquema en la nube (migraciones)
+
+Si al correr `pnpm promote:licenciatario …` ves un error del tipo **Could not find the table `public.users` in the schema cache**, tu proyecto **aún no tiene** el esquema de este repo (o estás apuntando a otro proyecto).
+
+**Comprobación rápida:** en el dashboard, **Table Editor** → schema **public** → deberían existir tablas como **`users`**, **`licenses`**, **`products`**, etc. Si no están, seguí una de estas opciones:
+
+### Opción A — Supabase CLI (recomendado)
+
+1. Instalá la CLI: [Supabase CLI](https://supabase.com/docs/guides/cli).
+2. En la raíz del repo: `npx supabase@latest login` y enlazá el proyecto con tu `project-ref` (Settings → General → Reference ID).
+3. `npx supabase@latest db push` (aplica `supabase/migrations/*.sql` pendientes).
+
+### Opción B — SQL Editor (sin CLI)
+
+1. Dashboard → **SQL Editor** → *New query*.
+2. Pegá y ejecutá **en orden** el contenido completo de cada archivo:
+   - `supabase/migrations/20240101000000_initial_schema.sql`
+   - `supabase/migrations/20260203120000_req1_health_rls_schema.sql`
+   - `supabase/migrations/20260403120000_req2_licenciatario_portal.sql`  
+   Si algo falla por “already exists”, revisá el mensaje: a veces hace falta ajustar a mano en proyectos que ya tenían tablas distintas.
+
+Después de esto, volvé a ejecutar el script `promote`.
+
+---
+
 ## Paso 1 — Abrir el proyecto correcto
 
 1. Entrá al [dashboard de Supabase](https://supabase.com/dashboard).

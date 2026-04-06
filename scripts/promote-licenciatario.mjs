@@ -45,6 +45,19 @@ function loadEnvLocal() {
 
 loadEnvLocal();
 
+function isSchemaMissingTableError(message) {
+  return /could not find the table|schema cache/i.test(message);
+}
+
+function printSchemaHelp() {
+  console.error(`
+El proyecto de Supabase de tu URL no tiene tablas del repo (p. ej. public.users) o la API no las expone.
+  • Revisá que NEXT_PUBLIC_SUPABASE_URL y las keys sean del MISMO proyecto (Settings → API).
+  • Aplicá las migraciones SQL en orden en SQL Editor, o con Supabase CLI: db push.
+    Archivos: supabase/migrations/20240101000000_initial_schema.sql → …req1… → …req2…
+  • Guía: docs/guia-licenciatario-supabase.md (sección «Esquema en la nube»).`);
+}
+
 const url = process.env.NEXT_PUBLIC_SUPABASE_URL ?? "";
 const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY ?? "";
 
@@ -96,6 +109,9 @@ const { error: upsertErr } = await supabase.from("users").upsert(
 
 if (upsertErr) {
   console.error("Error actualizando public.users:", upsertErr.message);
+  if (isSchemaMissingTableError(upsertErr.message)) {
+    printSchemaHelp();
+  }
   process.exit(1);
 }
 
@@ -107,6 +123,9 @@ const { data: existingLicenses, error: licCountErr } = await supabase
 
 if (licCountErr) {
   console.error("Error consultando licenses:", licCountErr.message);
+  if (isSchemaMissingTableError(licCountErr.message)) {
+    printSchemaHelp();
+  }
   process.exit(1);
 }
 
@@ -119,6 +138,9 @@ if (!existingLicenses?.length) {
 
   if (insLicErr) {
     console.error("Error insertando licencia:", insLicErr.message);
+    if (isSchemaMissingTableError(insLicErr.message)) {
+      printSchemaHelp();
+    }
     process.exit(1);
   }
   console.log("Licencia de ejemplo creada (marroquinería, active).");
