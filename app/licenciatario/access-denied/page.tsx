@@ -1,5 +1,6 @@
 import { SiteAccessNav } from "@/components/site/site-access-nav";
 import Link from "next/link";
+import { AccessDeniedDevHint } from "./dev-hint";
 
 export default function LicenciatarioAccessDeniedPage() {
   return (
@@ -15,16 +16,18 @@ export default function LicenciatarioAccessDeniedPage() {
           Jean Cartier.
         </p>
         {process.env.NODE_ENV === "development" ? (
-          <p className="mb-8 max-w-lg rounded-lg border border-jc-gray-200 bg-jc-white/80 px-4 py-3 text-left text-sm text-jc-gray-600 shadow-sm">
-            <strong className="font-medium text-jc-black">Entorno local:</strong> el portal solo
-            admite usuarios con rol <code className="text-xs">licenciatario</code> en{" "}
-            <code className="text-xs">public.users</code>. Con{" "}
-            <code className="text-xs">SUPABASE_SERVICE_ROLE_KEY</code> en{" "}
-            <code className="text-xs">.env.local</code>, ejecutá{" "}
-            <code className="text-xs">pnpm promote:licenciatario tu@email.com</code> y volvé a
-            iniciar sesión. Más detalle en{" "}
-            <code className="text-xs">docs/guia-licenciatario-supabase.md</code>.
-          </p>
+          <>
+            <p className="mb-4 max-w-lg rounded-lg border border-jc-gray-200 bg-jc-white/80 px-4 py-3 text-left text-sm text-jc-gray-600 shadow-sm">
+              <strong className="font-medium text-jc-black">Entorno local:</strong> hace falta rol{" "}
+              <code className="text-xs">licenciatario</code> en{" "}
+              <code className="text-xs">public.users</code> y{" "}
+              <code className="text-xs">SUPABASE_SERVICE_ROLE_KEY</code> en{" "}
+              <code className="text-xs">.env.local</code> para{" "}
+              <code className="text-xs">pnpm promote:licenciatario …</code>. Guía:{" "}
+              <code className="text-xs">docs/guia-licenciatario-supabase.md</code>.
+            </p>
+            <AccessDeniedDevHint />
+          </>
         ) : null}
         <Link
           href="/"
