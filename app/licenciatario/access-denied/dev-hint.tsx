@@ -35,24 +35,38 @@ export async function AccessDeniedDevHint() {
     .maybeSingle();
 
   if (error) {
+    const recursion = /infinite recursion/i.test(error.message);
     return (
       <div className={box}>
         <p className="mb-2">
           <strong className="font-medium text-jc-black">Diagnóstico (dev):</strong> no se pudo leer{" "}
           <code className="text-xs">public.users</code>: {error.message}
         </p>
-        <p className="mb-2">
-          Tu proyecto en la nube todavía no tiene las tablas de la app. En el{" "}
-          <strong className="text-jc-black">mismo</strong> proyecto que tu{" "}
-          <code className="text-xs">NEXT_PUBLIC_SUPABASE_URL</code>: Dashboard →{" "}
-          <strong className="text-jc-black">SQL Editor</strong> → abrí en el repo{" "}
-          <code className="text-xs">supabase/remote_schema_once.sql</code>, copiá todo, pegá, Run.
-          Luego <code className="text-xs">pnpm promote:licenciatario …</code> y volvé a entrar.
-        </p>
-        <p>
-          Más opciones en <code className="text-xs">docs/guia-licenciatario-supabase.md</code>{" "}
-          («Esquema en la nube»).
-        </p>
+        {recursion ? (
+          <p className="mb-2">
+            Es un bug de RLS en <code className="text-xs">users</code> (política admin que se llama
+            a sí misma). En Supabase → <strong className="text-jc-black">SQL Editor</strong> pegá y
+            ejecutá el archivo{" "}
+            <code className="text-xs">
+              supabase/migrations/20260406120000_fix_users_rls_recursion.sql
+            </code>{" "}
+            del repo (o <code className="text-xs">git pull</code> y copiá ese archivo). Refrescá
+            esta página.
+          </p>
+        ) : (
+          <>
+            <p className="mb-2">
+              Suele ser tablas que faltan o proyecto distinto. Mismo proyecto que{" "}
+              <code className="text-xs">NEXT_PUBLIC_SUPABASE_URL</code>:{" "}
+              <strong className="text-jc-black">SQL Editor</strong> → pegá{" "}
+              <code className="text-xs">supabase/remote_schema_once.sql</code> → Run. Después{" "}
+              <code className="text-xs">pnpm promote:licenciatario …</code>.
+            </p>
+            <p>
+              Más en <code className="text-xs">docs/guia-licenciatario-supabase.md</code>.
+            </p>
+          </>
+        )}
       </div>
     );
   }

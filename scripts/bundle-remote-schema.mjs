@@ -26,6 +26,7 @@ const FILES = [
   "20240101000000_initial_schema.sql",
   "20260203120000_req1_health_rls_schema.sql",
   "20260403120000_req2_licenciatario_portal.sql",
+  "20260406120000_fix_users_rls_recursion.sql",
 ];
 
 let out = `${HEADER}\n`;
