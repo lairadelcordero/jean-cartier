@@ -207,9 +207,17 @@ Types in [`types/database.ts`](types/database.ts) should match the DB **after** 
 ### Vercel
 
 1. Import the repository in [Vercel](https://vercel.com/).
-2. Set environment variables (mirror `.env.example`): Supabase URL/keys, `MERCADO_PAGO_ACCESS_TOKEN`, `NEXT_PUBLIC_MERCADO_PAGO_PUBLIC_KEY`, `NEXT_PUBLIC_ENVIRONMENT=production`, `NEXT_PUBLIC_APP_URL`, `NEXT_PUBLIC_SITE_URL`.
-3. Add Supabase redirect URL: `https://<your-domain>/api/auth/callback`.
-4. CI: on push to `main`, the [GitHub Actions workflow](.github/workflows/ci.yml) runs checks and deploys with `vercel` when `VERCEL_TOKEN`, `VERCEL_ORG_ID`, and `VERCEL_PROJECT_ID` secrets are configured. Pushes con HTTPS y OAuth sin scope **`workflow`** pueden rechazar cambios en `.github/workflows/`; usá un token con ese permiso o SSH.
+2. **Environment variables** (Project → Settings → Environment Variables). Mínimo para que arranque login + proxy sin 500:
+   - `NEXT_PUBLIC_SUPABASE_URL`
+   - `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_DEFAULT_KEY` **o** `NEXT_PUBLIC_SUPABASE_ANON_KEY` (una de las dos, la que uses en local)
+   - `NEXT_PUBLIC_ENVIRONMENT=production`
+   - `NEXT_PUBLIC_SITE_URL` = URL pública del sitio (ej. `https://jeancartier.vercel.app` o tu dominio)
+   - `NEXT_PUBLIC_APP_URL` = misma idea si tu flujo la usa (a veces igual que `NEXT_PUBLIC_SITE_URL`)
+   - Mercado Pago (si querés health verde): `MERCADO_PAGO_ACCESS_TOKEN`, `NEXT_PUBLIC_MERCADO_PAGO_PUBLIC_KEY`  
+   **Importante:** Vercel **no** lee tu `.env.local`; si falta la URL o la clave pública de Supabase, el proxy puede romper el deploy.
+3. **Supabase → Authentication → URL configuration:** agregá `https://<tu-proyecto>.vercel.app/api/auth/callback` (y tu dominio custom si aplica).
+4. Tras cambiar env: **Deployments → … → Redeploy** el último deploy.
+5. CI: on push to `main`, the [GitHub Actions workflow](.github/workflows/ci.yml) runs checks and deploys with `vercel` when `VERCEL_TOKEN`, `VERCEL_ORG_ID`, and `VERCEL_PROJECT_ID` secrets are configured. Pushes con HTTPS y OAuth sin scope **`workflow`** pueden rechazar cambios en `.github/workflows/`; usá un token con ese permiso o SSH.
 
 ---
 

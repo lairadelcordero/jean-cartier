@@ -14,7 +14,20 @@ function isLicenciatarioApi(pathname: string): boolean {
 }
 
 export async function proxy(req: NextRequest) {
-  const { response, user } = await updateSession(req);
+  let response: NextResponse;
+  let user: Awaited<ReturnType<typeof updateSession>>["user"];
+
+  try {
+    const ctx = await updateSession(req);
+    response = ctx.response;
+    user = ctx.user;
+  } catch (err) {
+    // Evita MIDDLEWARE_INVOCATION_FAILED en Vercel si falta env, cookies raras, etc.
+    console.error("[proxy] updateSession error:", err);
+    response = NextResponse.next({ request: req });
+    user = null;
+  }
+
   const { pathname } = req.nextUrl;
 
   if (pathname.startsWith(CALLBACK_PATH) || AUTH_PATHS.test(pathname)) {

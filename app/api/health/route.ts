@@ -14,10 +14,7 @@ async function checkDatabase(): Promise<{ ok: boolean; latency_ms: number }> {
     clearTimeout(timeout);
 
     if (error) {
-      const { error: authError } = await supabase.auth.getUser();
-      if (authError && authError.message !== "Auth session missing!") {
-        throw new Error(authError.message);
-      }
+      return { ok: false, latency_ms: Date.now() - start };
     }
 
     return { ok: true, latency_ms: Date.now() - start };
