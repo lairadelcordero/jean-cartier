@@ -149,3 +149,5 @@ Eso hace `upsert` en **`public.users`** con `role = licenciatario` y crea una li
 
 - Las variables públicas de Supabase están documentadas en [`.env.example`](../.env.example); el cliente usa `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_DEFAULT_KEY` o `NEXT_PUBLIC_SUPABASE_ANON_KEY` ([`lib/supabase/env.ts`](../lib/supabase/env.ts)).
 - Mercado Pago en front: `NEXT_PUBLIC_MERCADO_PAGO_PUBLIC_KEY` (no solo `MERCADO_PAGO_PUBLIC_KEY`).
+- Panel admin/sudo: para usar `/api/admin/*` necesitás `SUPABASE_SERVICE_ROLE_KEY` real en entorno servidor (local y Vercel).
+- Bootstrap de superusuario: `pnpm promote:sudo tu@email.com` (usuario ya creado en Auth).

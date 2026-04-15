@@ -4,6 +4,7 @@ const licenseLabels: Record<LicenseStatus, string> = {
   active: "Activa",
   inactive: "Inactiva",
   pending: "Pendiente",
+  expired: "Expirada",
 };
 
 const productLabels: Record<ProductStatus, string> = {
@@ -14,6 +15,7 @@ const productLabels: Record<ProductStatus, string> = {
 function licenseClasses(s: LicenseStatus): string {
   if (s === "active") return "bg-emerald-100 text-emerald-800";
   if (s === "pending") return "bg-amber-100 text-amber-900";
+  if (s === "expired") return "bg-rose-100 text-rose-800";
   return "bg-jc-gray-100 text-jc-gray-700";
 }
 

@@ -133,6 +133,8 @@ Guía paso a paso: **[docs/guia-licenciatario-supabase.md](docs/guia-licenciatar
 
 - **Automatizado hoy:** contrato de `/api/health`, validación de productos (`lib/licenciatario/product-validation.test.ts`), referencias de licencia / serializers (`lib/licenciatario/serializers.test.ts`). **CI verde no cubre** flujos E2E del portal ni todas las rutas `/api/licenciatario`.
 - **Manual recomendado:** login licenciatario → dashboard → detalle de licencia → CRUD productos (incl. SKU duplicado y desactivar). **RLS:** validar en un proyecto Supabase real con migraciones + `seed.sql` (local) o datos propios.
+- **Admin panel QA:** checklist operativo en [`docs/admin-panel-qa.md`](docs/admin-panel-qa.md).
+- **UX admin (4 perfiles):** revisión heurística en [`docs/admin-ux-review-4-personas.md`](docs/admin-ux-review-4-personas.md).
 - **Deploy / GitHub Actions:** el job que despliega depende de secretos `VERCEL_*`; sin ellos el workflow puede fallar aunque el build local pase con `.env.local`.
 
 ---
@@ -150,6 +152,8 @@ Guía paso a paso: **[docs/guia-licenciatario-supabase.md](docs/guia-licenciatar
 | `pnpm test` | Run Vitest tests |
 | `pnpm test:watch` | Run Vitest in watch mode |
 | `pnpm promote:licenciatario <email>` | (Dev) Promueve usuario a `licenciatario` + licencia ejemplo vía service role |
+| `pnpm promote:sudo <email>` | (Dev) Promueve usuario a `sudo` |
+| `pnpm db:bundle-remote-schema` | Regenera `supabase/remote_schema_once.sql` desde todas las migraciones |
 
 ---
 
@@ -214,10 +218,18 @@ Types in [`types/database.ts`](types/database.ts) should match the DB **after** 
    - `NEXT_PUBLIC_SITE_URL` = URL pública del sitio (ej. `https://jeancartier.vercel.app` o tu dominio)
    - `NEXT_PUBLIC_APP_URL` = misma idea si tu flujo la usa (a veces igual que `NEXT_PUBLIC_SITE_URL`)
    - Mercado Pago (si querés health verde): `MERCADO_PAGO_ACCESS_TOKEN`, `NEXT_PUBLIC_MERCADO_PAGO_PUBLIC_KEY`  
+   - Admin APIs (`/api/admin/*`): `SUPABASE_SERVICE_ROLE_KEY` (server-side)
    **Importante:** Vercel **no** lee tu `.env.local`; si falta la URL o la clave pública de Supabase, el proxy puede romper el deploy.
 3. **Supabase → Authentication → URL configuration:** agregá `https://<tu-proyecto>.vercel.app/api/auth/callback` (y tu dominio custom si aplica).
 4. Tras cambiar env: **Deployments → … → Redeploy** el último deploy.
 5. CI: on push to `main`, the [GitHub Actions workflow](.github/workflows/ci.yml) runs checks and deploys with `vercel` when `VERCEL_TOKEN`, `VERCEL_ORG_ID`, and `VERCEL_PROJECT_ID` secrets are configured. Pushes con HTTPS y OAuth sin scope **`workflow`** pueden rechazar cambios en `.github/workflows/`; usá un token con ese permiso o SSH.
+
+### Admin panel (SUDO)
+
+- Rutas: `/admin`, `/admin/users`, `/admin/licenses`, `/admin/customers`, `/admin/documents`.
+- Roles admitidos para entrar: `editor`, `admin`, `sudo`.
+- Gestión de usuarios/licencias/clientes requiere `admin` o `sudo`.
+- Asignar/quitar rol `sudo` solo puede hacerlo un usuario `sudo`.
 
 ---
 

@@ -6,11 +6,19 @@ const CALLBACK_PATH = "/api/auth/callback";
 
 /** Routes that require a session (REQ-1 / REQ-2). */
 function isProtectedPath(pathname: string): boolean {
-  return pathname.startsWith("/dashboard") || pathname.startsWith("/licenciatario");
+  return (
+    pathname.startsWith("/dashboard") ||
+    pathname.startsWith("/licenciatario") ||
+    pathname.startsWith("/admin")
+  );
 }
 
 function isLicenciatarioApi(pathname: string): boolean {
   return pathname.startsWith("/api/licenciatario");
+}
+
+function isAdminApi(pathname: string): boolean {
+  return pathname.startsWith("/api/admin");
 }
 
 export async function proxy(req: NextRequest) {
@@ -34,7 +42,7 @@ export async function proxy(req: NextRequest) {
     return response;
   }
 
-  if (isLicenciatarioApi(pathname)) {
+  if (isLicenciatarioApi(pathname) || isAdminApi(pathname)) {
     if (!user) {
       return NextResponse.json(
         { error: "Unauthorized", message: "Please log in to access your portal" },

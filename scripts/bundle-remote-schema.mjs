@@ -2,7 +2,7 @@
  * Regenera supabase/remote_schema_once.sql a partir de supabase/migrations/.
  * Correr tras editar migraciones: pnpm db:bundle-remote-schema
  */
-import { readFileSync, writeFileSync } from "node:fs";
+import { readFileSync, readdirSync, writeFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -22,12 +22,9 @@ const HEADER = `-- =============================================================
 -- =============================================================================
 `;
 
-const FILES = [
-  "20240101000000_initial_schema.sql",
-  "20260203120000_req1_health_rls_schema.sql",
-  "20260403120000_req2_licenciatario_portal.sql",
-  "20260406120000_fix_users_rls_recursion.sql",
-];
+const FILES = readdirSync(migrationsDir)
+  .filter((name) => name.endsWith(".sql"))
+  .sort();
 
 let out = `${HEADER}\n`;
 for (const name of FILES) {
