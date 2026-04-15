@@ -30,16 +30,21 @@ export async function GET(
   const to = from + limit - 1;
   const rawStatus = searchParams.get("status");
   const status: PaymentStatus | null =
-    rawStatus && PAYMENT_STATUSES.has(rawStatus as PaymentStatus) ? (rawStatus as PaymentStatus) : null;
+    rawStatus && PAYMENT_STATUSES.has(rawStatus as PaymentStatus)
+      ? (rawStatus as PaymentStatus)
+      : null;
   const dateFrom = searchParams.get("date_from");
   const dateTo = searchParams.get("date_to");
 
   const service = createServiceClient();
   let query = service
     .from("licenciatario_payments")
-    .select("id, payment_date, amount, currency, payment_method, reference, status, recorded_at, recorded_by", {
-      count: "exact",
-    })
+    .select(
+      "id, payment_date, amount, currency, payment_method, reference, status, recorded_at, recorded_by",
+      {
+        count: "exact",
+      }
+    )
     .eq("licenciatario_id", licenciatarioId)
     .order("payment_date", { ascending: false })
     .range(from, to);
@@ -74,7 +79,10 @@ export async function POST(
   };
 
   if (!body.payment_date || !body.amount || !body.payment_method) {
-    return NextResponse.json({ error: "payment_date, amount and payment_method are required" }, { status: 400 });
+    return NextResponse.json(
+      { error: "payment_date, amount and payment_method are required" },
+      { status: 400 }
+    );
   }
   if (!METHODS.has(body.payment_method)) {
     return NextResponse.json({ error: "Invalid payment_method" }, { status: 400 });

@@ -98,29 +98,33 @@ export function AdminCommercialTermsClient() {
     if (!selectedLicenciatario) return;
     setSaving(true);
     setError(null);
-    const res = await fetch(`/api/v1/admin/licenciatarios/${selectedLicenciatario}/commercial-terms`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        payment_model: "custom",
-        contract_type: termsDraft.contract_type,
-        billing_frequency: termsDraft.contract_type === "installments" ? termsDraft.billing_frequency : null,
-        base_tariff_amount: Number(termsDraft.base_tariff_amount),
-        currency: termsDraft.currency,
-        usd_ars_exchange_rate:
-          termsDraft.currency === "USD" && termsDraft.usd_ars_exchange_rate
-            ? Number(termsDraft.usd_ars_exchange_rate)
-            : null,
-        installments_count:
-          termsDraft.contract_type === "installments" && termsDraft.installments_count
-            ? Number(termsDraft.installments_count)
-            : null,
-        effective_date: termsDraft.effective_date,
-        end_date: termsDraft.end_date || null,
-        payment_due_day: Number(termsDraft.payment_due_day),
-        tariff_tiers: [],
-      }),
-    });
+    const res = await fetch(
+      `/api/v1/admin/licenciatarios/${selectedLicenciatario}/commercial-terms`,
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          payment_model: "custom",
+          contract_type: termsDraft.contract_type,
+          billing_frequency:
+            termsDraft.contract_type === "installments" ? termsDraft.billing_frequency : null,
+          base_tariff_amount: Number(termsDraft.base_tariff_amount),
+          currency: termsDraft.currency,
+          usd_ars_exchange_rate:
+            termsDraft.currency === "USD" && termsDraft.usd_ars_exchange_rate
+              ? Number(termsDraft.usd_ars_exchange_rate)
+              : null,
+          installments_count:
+            termsDraft.contract_type === "installments" && termsDraft.installments_count
+              ? Number(termsDraft.installments_count)
+              : null,
+          effective_date: termsDraft.effective_date,
+          end_date: termsDraft.end_date || null,
+          payment_due_day: Number(termsDraft.payment_due_day),
+          tariff_tiers: [],
+        }),
+      }
+    );
     const body = (await res.json()) as { error?: string };
     if (!res.ok) {
       setError(body.error ?? "No se pudieron guardar términos");
@@ -163,8 +167,11 @@ export function AdminCommercialTermsClient() {
     <div className="space-y-4">
       {error ? <p className="rounded bg-red-50 p-3 text-sm text-red-700">{error}</p> : null}
       <div className="rounded-xl border border-jc-gray-100 bg-jc-white p-4">
-        <label className="mb-2 block text-sm font-medium">Licenciatario</label>
+        <label htmlFor="commercial-terms-licenciatario" className="mb-2 block text-sm font-medium">
+          Licenciatario
+        </label>
         <select
+          id="commercial-terms-licenciatario"
           className="w-full max-w-xl rounded border border-jc-gray-100 px-3 py-2"
           value={selectedLicenciatario}
           onChange={(e) => setSelectedLicenciatario(e.target.value)}
@@ -178,7 +185,10 @@ export function AdminCommercialTermsClient() {
       </div>
 
       <div className="grid gap-4 md:grid-cols-2">
-        <form onSubmit={(e) => void saveTerms(e)} className="space-y-3 rounded-xl border border-jc-gray-100 bg-jc-white p-4">
+        <form
+          onSubmit={(e) => void saveTerms(e)}
+          className="space-y-3 rounded-xl border border-jc-gray-100 bg-jc-white p-4"
+        >
           <h3 className="text-base font-semibold">Contrato comercial (Argentina)</h3>
           <label className="block text-sm">
             <span className="mb-1 block text-jc-gray-700">Tipo de contrato</span>
@@ -205,7 +215,11 @@ export function AdminCommercialTermsClient() {
                 onChange={(e) =>
                   setTermsDraft((prev) => ({
                     ...prev,
-                    billing_frequency: e.target.value as "monthly" | "quarterly" | "semiannual" | "annual",
+                    billing_frequency: e.target.value as
+                      | "monthly"
+                      | "quarterly"
+                      | "semiannual"
+                      | "annual",
                   }))
                 }
               >
@@ -224,7 +238,9 @@ export function AdminCommercialTermsClient() {
                 type="number"
                 min={1}
                 value={termsDraft.installments_count}
-                onChange={(e) => setTermsDraft((prev) => ({ ...prev, installments_count: e.target.value }))}
+                onChange={(e) =>
+                  setTermsDraft((prev) => ({ ...prev, installments_count: e.target.value }))
+                }
               />
             </label>
           ) : null}
@@ -233,7 +249,9 @@ export function AdminCommercialTermsClient() {
             <select
               className="w-full rounded border border-jc-gray-100 px-3 py-2"
               value={termsDraft.currency}
-              onChange={(e) => setTermsDraft((prev) => ({ ...prev, currency: e.target.value as "ARS" | "USD" }))}
+              onChange={(e) =>
+                setTermsDraft((prev) => ({ ...prev, currency: e.target.value as "ARS" | "USD" }))
+              }
             >
               <option value="ARS">Pesos argentinos (ARS)</option>
               <option value="USD">Dolares estadounidenses (USD)</option>
@@ -241,7 +259,9 @@ export function AdminCommercialTermsClient() {
           </label>
           {termsDraft.currency === "USD" ? (
             <label className="block text-sm">
-              <span className="mb-1 block text-jc-gray-700">Tipo de cambio de referencia (US$1 = AR$X)</span>
+              <span className="mb-1 block text-jc-gray-700">
+                Tipo de cambio de referencia (US$1 = AR$X)
+              </span>
               <input
                 className="w-full rounded border border-jc-gray-100 px-3 py-2"
                 type="number"
@@ -249,19 +269,23 @@ export function AdminCommercialTermsClient() {
                 step="0.01"
                 placeholder="Ej: 1100"
                 value={termsDraft.usd_ars_exchange_rate}
-                onChange={(e) => setTermsDraft((prev) => ({ ...prev, usd_ars_exchange_rate: e.target.value }))}
+                onChange={(e) =>
+                  setTermsDraft((prev) => ({ ...prev, usd_ars_exchange_rate: e.target.value }))
+                }
               />
             </label>
           ) : null}
           <label className="block text-sm">
             <span className="mb-1 block text-jc-gray-700">Monto mensual/acordado</span>
-          <input
-            className="w-full rounded border border-jc-gray-100 px-3 py-2"
-            type="number"
-            step="0.01"
-            value={termsDraft.base_tariff_amount}
-            onChange={(e) => setTermsDraft((prev) => ({ ...prev, base_tariff_amount: e.target.value }))}
-          />
+            <input
+              className="w-full rounded border border-jc-gray-100 px-3 py-2"
+              type="number"
+              step="0.01"
+              value={termsDraft.base_tariff_amount}
+              onChange={(e) =>
+                setTermsDraft((prev) => ({ ...prev, base_tariff_amount: e.target.value }))
+              }
+            />
           </label>
           <input
             className="w-full rounded border border-jc-gray-100 px-3 py-2"
@@ -299,7 +323,9 @@ export function AdminCommercialTermsClient() {
           <select
             className="w-full rounded border border-jc-gray-100 px-3 py-2"
             value={paymentDraft.currency}
-            onChange={(e) => setPaymentDraft((prev) => ({ ...prev, currency: e.target.value as "ARS" | "USD" }))}
+            onChange={(e) =>
+              setPaymentDraft((prev) => ({ ...prev, currency: e.target.value as "ARS" | "USD" }))
+            }
           >
             <option value="ARS">ARS</option>
             <option value="USD">USD</option>
@@ -321,8 +347,8 @@ export function AdminCommercialTermsClient() {
             {history.map((item) => (
               <div key={item.id} className="rounded bg-jc-gray-50 p-2">
                 <p>
-                  {item.contract_type === "one_time" ? "Un pago" : "Plan de pagos"} · {item.base_tariff_amount}{" "}
-                  {item.currency ?? "ARS"}
+                  {item.contract_type === "one_time" ? "Un pago" : "Plan de pagos"} ·{" "}
+                  {item.base_tariff_amount} {item.currency ?? "ARS"}
                 </p>
                 <p>
                   {item.effective_date} - {item.end_date ?? "vigente"}

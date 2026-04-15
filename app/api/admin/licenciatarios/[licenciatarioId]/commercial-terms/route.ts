@@ -1,1 +1,4 @@
-export { GET, POST } from "@/app/api/v1/admin/licenciatarios/[licenciatarioId]/commercial-terms/route";
+export {
+  GET,
+  POST,
+} from "@/app/api/v1/admin/licenciatarios/[licenciatarioId]/commercial-terms/route";

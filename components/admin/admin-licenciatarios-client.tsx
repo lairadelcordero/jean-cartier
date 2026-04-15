@@ -172,10 +172,15 @@ export function AdminLicenciatariosClient() {
     <div className="space-y-4">
       {error ? <p className="rounded bg-red-50 p-3 text-sm text-red-700">{error}</p> : null}
 
-      <form onSubmit={(e) => void createLicenciatario(e)} className="space-y-4 rounded-xl border border-jc-gray-100 bg-jc-white p-4">
+      <form
+        onSubmit={(e) => void createLicenciatario(e)}
+        className="space-y-4 rounded-xl border border-jc-gray-100 bg-jc-white p-4"
+      >
         <div>
           <h3 className="text-base font-semibold">Alta rapida de licenciatario</h3>
-          <p className="text-sm text-jc-gray-600">Todos los campos son opcionales. Podras completar la ficha despues.</p>
+          <p className="text-sm text-jc-gray-600">
+            Todos los campos son opcionales. Podras completar la ficha despues.
+          </p>
         </div>
 
         <div className="grid gap-4 md:grid-cols-2">
@@ -187,7 +192,9 @@ export function AdminLicenciatariosClient() {
                 className="w-full rounded border border-jc-gray-100 px-3 py-2"
                 placeholder="Ej: Grupo Nathan"
                 value={createDraft.razon_social}
-                onChange={(e) => setCreateDraft((prev) => ({ ...prev, razon_social: e.target.value }))}
+                onChange={(e) =>
+                  setCreateDraft((prev) => ({ ...prev, razon_social: e.target.value }))
+                }
               />
             </label>
             <label className="block text-sm">
@@ -255,14 +262,18 @@ export function AdminLicenciatariosClient() {
         </div>
 
         <details className="rounded-lg border border-jc-gray-100 p-3">
-          <summary className="cursor-pointer text-sm font-medium">Campos avanzados (opcionales)</summary>
+          <summary className="cursor-pointer text-sm font-medium">
+            Campos avanzados (opcionales)
+          </summary>
           <div className="mt-3 grid gap-3 md:grid-cols-3">
             <label className="block text-sm">
               <span className="mb-1 block text-jc-gray-700">Tipo de entidad</span>
               <input
                 className="w-full rounded border border-jc-gray-100 px-3 py-2"
                 value={createDraft.tipo_entidad}
-                onChange={(e) => setCreateDraft((prev) => ({ ...prev, tipo_entidad: e.target.value }))}
+                onChange={(e) =>
+                  setCreateDraft((prev) => ({ ...prev, tipo_entidad: e.target.value }))
+                }
               />
             </label>
             <label className="block text-sm">
@@ -270,7 +281,9 @@ export function AdminLicenciatariosClient() {
               <input
                 className="w-full rounded border border-jc-gray-100 px-3 py-2"
                 value={createDraft.regimen_tributario}
-                onChange={(e) => setCreateDraft((prev) => ({ ...prev, regimen_tributario: e.target.value }))}
+                onChange={(e) =>
+                  setCreateDraft((prev) => ({ ...prev, regimen_tributario: e.target.value }))
+                }
               />
             </label>
             <label className="block text-sm">
@@ -278,7 +291,9 @@ export function AdminLicenciatariosClient() {
               <input
                 className="w-full rounded border border-jc-gray-100 px-3 py-2"
                 value={createDraft.actividad_principal}
-                onChange={(e) => setCreateDraft((prev) => ({ ...prev, actividad_principal: e.target.value }))}
+                onChange={(e) =>
+                  setCreateDraft((prev) => ({ ...prev, actividad_principal: e.target.value }))
+                }
               />
             </label>
           </div>
@@ -336,7 +351,7 @@ export function AdminLicenciatariosClient() {
               <thead>
                 <tr className="border-b border-jc-gray-100 bg-jc-gray-50 text-left">
                   <th className="px-3 py-2">Razón social</th>
-              <th className="px-3 py-2">CUIT</th>
+                  <th className="px-3 py-2">CUIT</th>
                   <th className="px-3 py-2">Estado</th>
                   <th className="px-3 py-2">Categoría</th>
                   <th className="px-3 py-2">Vence</th>
@@ -356,11 +371,24 @@ export function AdminLicenciatariosClient() {
                       className={`cursor-pointer border-b border-jc-gray-100 ${
                         selectedId === row.id ? "bg-jc-gray-50" : ""
                       }`}
+                      tabIndex={0}
                       onClick={() => setSelectedId(row.id)}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter" || e.key === " ") {
+                          e.preventDefault();
+                          setSelectedId(row.id);
+                        }
+                      }}
                     >
                       <td className="px-3 py-2">{row.razon_social}</td>
                       <td className="px-3 py-2">{row.rut_cuit}</td>
-                      <td className="px-3 py-2">{row.status === "pending" ? "Pendiente" : row.status === "active" ? "Activo" : "Inactivo"}</td>
+                      <td className="px-3 py-2">
+                        {row.status === "pending"
+                          ? "Pendiente"
+                          : row.status === "active"
+                            ? "Activo"
+                            : "Inactivo"}
+                      </td>
                       <td className="px-3 py-2">{row.primary_category ?? "-"}</td>
                       <td className="px-3 py-2">{row.license_expiration_date ?? "-"}</td>
                     </tr>
@@ -386,7 +414,8 @@ export function AdminLicenciatariosClient() {
               </p>
               <p className="text-sm">
                 <span className="font-medium">Contacto:</span>{" "}
-                {asOptional(detail.contact_data.primary_contact.name)} / {asOptional(detail.contact_data.primary_contact.email)}
+                {asOptional(detail.contact_data.primary_contact.name)} /{" "}
+                {asOptional(detail.contact_data.primary_contact.email)}
               </p>
               <button
                 type="button"

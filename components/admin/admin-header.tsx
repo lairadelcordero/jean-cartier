@@ -21,7 +21,9 @@ export function AdminHeader({ email, role }: { email: string; role: string }) {
     <header className="border-b border-jc-gray-100 bg-gradient-surface shadow-jc">
       <div className="mx-auto flex max-w-7xl items-center justify-between gap-4 px-4 py-4 md:px-6">
         <div>
-          <p className="font-sans text-lg font-heading tracking-menu text-jc-gold">JEAN CARTIER · ADMIN</p>
+          <p className="font-sans text-lg font-heading tracking-menu text-jc-gold">
+            JEAN CARTIER · ADMIN
+          </p>
           <p className="text-xs text-jc-gray-700">Backoffice licenciatarios</p>
         </div>
         <div className="flex items-center gap-3 text-sm">

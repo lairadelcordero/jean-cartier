@@ -28,7 +28,9 @@ export async function GET(
   const service = createServiceClient();
   let query = service
     .from("licenciatario_change_history")
-    .select("id, created_at, admin_user_id, field_name, old_value, new_value, change_type", { count: "exact" })
+    .select("id, created_at, admin_user_id, field_name, old_value, new_value, change_type", {
+      count: "exact",
+    })
     .eq("licenciatario_id", licenciatarioId)
     .order("created_at", { ascending: false })
     .range(from, to);
@@ -57,7 +59,7 @@ export async function GET(
       id: row.id,
       timestamp: row.created_at,
       admin_user_id: row.admin_user_id,
-      admin_name: row.admin_user_id ? names.get(row.admin_user_id) ?? row.admin_user_id : null,
+      admin_name: row.admin_user_id ? (names.get(row.admin_user_id) ?? row.admin_user_id) : null,
       field_name: row.field_name,
       old_value: row.old_value,
       new_value: row.new_value,

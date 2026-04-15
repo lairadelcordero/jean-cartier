@@ -31,7 +31,10 @@ export async function PATCH(
   if (!existing) return NextResponse.json({ error: "License not found" }, { status: 404 });
 
   if (existing.status === "expired" && body.status === "expired") {
-    return NextResponse.json({ error: "Cannot expire an already expired license" }, { status: 400 });
+    return NextResponse.json(
+      { error: "Cannot expire an already expired license" },
+      { status: 400 }
+    );
   }
   if (body.status === "active" && new Date(existing.expiration_date).getTime() <= Date.now()) {
     return NextResponse.json(
@@ -44,7 +47,10 @@ export async function PATCH(
     status: body.status,
     notes: body.notes?.trim() ?? existing.notes,
     last_modified_by: user.id,
-    renewal_date: body.status === "active" && existing.status !== "active" ? new Date().toISOString().slice(0, 10) : existing.renewal_date,
+    renewal_date:
+      body.status === "active" && existing.status !== "active"
+        ? new Date().toISOString().slice(0, 10)
+        : existing.renewal_date,
   };
 
   const { data: updated, error } = await service

@@ -37,14 +37,17 @@ export async function GET(
   const rawResult = searchParams.get("result")?.trim();
   const result: ResultType | null =
     rawResult && RESULT_TYPES.has(rawResult as ResultType) ? (rawResult as ResultType) : null;
-  const sortOrder = searchParams.get("sort_order") === "asc" ? true : false;
+  const sortOrder = searchParams.get("sort_order") === "asc";
 
   const service = createServiceClient();
   let query = service
     .from("licenciatario_access_logs")
-    .select("id, created_at, access_type, result, ip_address, user_agent, denial_reason, admin_notes", {
-      count: "exact",
-    })
+    .select(
+      "id, created_at, access_type, result, ip_address, user_agent, denial_reason, admin_notes",
+      {
+        count: "exact",
+      }
+    )
     .eq("licenciatario_id", licenciatarioId)
     .order("created_at", { ascending: sortOrder })
     .range(from, to);

@@ -1,7 +1,7 @@
 import { logAdminAction } from "@/lib/admin/audit";
 import { requireAdminApi, requireEditorApi } from "@/lib/admin/auth";
-import { createServiceClient } from "@/lib/supabase/service";
 import { assertDateOrder } from "@/lib/admin/validation";
+import { createServiceClient } from "@/lib/supabase/service";
 import type { LicenseStatus } from "@/types/database";
 import { NextResponse } from "next/server";
 
@@ -11,7 +11,10 @@ function toInt(value: string | null, fallback: number, min: number, max: number)
   return Math.max(min, Math.min(max, Math.trunc(parsed)));
 }
 
-function overlapsScope(a: "none" | "production" | "import" | "both", b: "none" | "production" | "import" | "both") {
+function overlapsScope(
+  a: "none" | "production" | "import" | "both",
+  b: "none" | "production" | "import" | "both"
+) {
   if (a === "none" || b === "none") return true;
   if (a === "both" || b === "both") return true;
   return a === b;
@@ -32,8 +35,14 @@ export async function GET(
       .get("status")
       ?.split(",")
       .map((v) => v.trim())
-      .filter((value): value is LicenseStatus => LICENSE_STATUSES.has(value as LicenseStatus)) ?? [];
-  const category = searchParams.get("category")?.split(",").map((v) => v.trim()).filter(Boolean) ?? [];
+      .filter((value): value is LicenseStatus => LICENSE_STATUSES.has(value as LicenseStatus)) ??
+    [];
+  const category =
+    searchParams
+      .get("category")
+      ?.split(",")
+      .map((v) => v.trim())
+      .filter(Boolean) ?? [];
   const dateFrom = searchParams.get("expiration_date_from");
   const dateTo = searchParams.get("expiration_date_to");
   const page = toInt(searchParams.get("page"), 1, 1, 999999);
@@ -47,8 +56,8 @@ export async function GET(
     .select(
       "id, category, category_id, tier_id, exclusive, exclusive_scope, agreed_price, status, issue_date, expiration_date, renewal_date, created_at, created_by",
       {
-      count: "exact",
-    }
+        count: "exact",
+      }
     )
     .eq("licenciatario_id", licenciatarioId)
     .order("created_at", { ascending: false })
@@ -83,7 +92,8 @@ export async function GET(
       ? service.from("license_tiers").select("id, name").in("id", tierIds)
       : Promise.resolve({ data: [], error: null }),
   ]);
-  if (categoriesRes.error) return NextResponse.json({ error: categoriesRes.error.message }, { status: 500 });
+  if (categoriesRes.error)
+    return NextResponse.json({ error: categoriesRes.error.message }, { status: 500 });
   if (tiersRes.error) return NextResponse.json({ error: tiersRes.error.message }, { status: 500 });
   const categoriesById = new Map((categoriesRes.data ?? []).map((row) => [row.id, row.name]));
   const tiersById = new Map((tiersRes.data ?? []).map((row) => [row.id, row.name]));
@@ -91,8 +101,10 @@ export async function GET(
   return NextResponse.json({
     data: (data ?? []).map((row) => ({
       ...row,
-      category_name: row.category_id ? categoriesById.get(row.category_id) ?? row.category : row.category,
-      tier_name: row.tier_id ? tiersById.get(row.tier_id) ?? null : null,
+      category_name: row.category_id
+        ? (categoriesById.get(row.category_id) ?? row.category)
+        : row.category,
+      tier_name: row.tier_id ? (tiersById.get(row.tier_id) ?? null) : null,
     })),
     pagination: { page, limit, total: count ?? 0 },
   });
@@ -127,12 +139,15 @@ export async function POST(
     );
   }
   if (!assertDateOrder(body.issue_date, body.expiration_date)) {
-    return NextResponse.json({ error: "expiration_date must be after issue_date" }, { status: 422 });
+    return NextResponse.json(
+      { error: "expiration_date must be after issue_date" },
+      { status: 422 }
+    );
   }
 
   const service = createServiceClient();
   let normalizedCategory = body.category?.trim() ?? "";
-  let categoryId = body.category_id ?? null;
+  const categoryId = body.category_id ?? null;
   if (categoryId) {
     const { data: categoryRow, error: categoryErr } = await service
       .from("license_categories")
@@ -145,7 +160,7 @@ export async function POST(
     normalizedCategory = categoryRow.name;
   }
 
-  let tierId = body.tier_id ?? null;
+  const tierId = body.tier_id ?? null;
   if (tierId) {
     const { data: tierRow, error: tierErr } = await service
       .from("license_tiers")
@@ -158,7 +173,7 @@ export async function POST(
   }
 
   const incomingScope: "none" | "production" | "import" | "both" = body.exclusive
-    ? body.exclusive_scope ?? "both"
+    ? (body.exclusive_scope ?? "both")
     : "none";
   const validityStartDate = body.issue_date;
 
@@ -180,7 +195,12 @@ export async function POST(
 
   const otherActiveLicenses = conflictingLicenses ?? [];
   const existingExclusive = otherActiveLicenses.filter(
-    (row) => row.exclusive && overlapsScope((row.exclusive_scope as "none" | "production" | "import" | "both") ?? "both", incomingScope)
+    (row) =>
+      row.exclusive &&
+      overlapsScope(
+        (row.exclusive_scope as "none" | "production" | "import" | "both") ?? "both",
+        incomingScope
+      )
   );
 
   if (body.exclusive && otherActiveLicenses.length > 0) {
@@ -211,7 +231,7 @@ export async function POST(
       category_id: categoryId,
       tier_id: tierId,
       exclusive: Boolean(body.exclusive),
-      exclusive_scope: body.exclusive ? body.exclusive_scope ?? "both" : "none",
+      exclusive_scope: body.exclusive ? (body.exclusive_scope ?? "both") : "none",
       agreed_price: body.agreed_price ?? null,
       status: "pending",
       issue_date: body.issue_date,

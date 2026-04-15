@@ -1,7 +1,12 @@
 import { logAdminAction } from "@/lib/admin/audit";
 import { requireAdminApi, requireEditorApi } from "@/lib/admin/auth";
+import {
+  isValidEmail,
+  isValidPhone,
+  isValidRutCuit,
+  normalizeRutCuit,
+} from "@/lib/admin/validation";
 import { createServiceClient } from "@/lib/supabase/service";
-import { isValidEmail, isValidPhone, isValidRutCuit, normalizeRutCuit } from "@/lib/admin/validation";
 import { NextResponse } from "next/server";
 
 export async function GET(
@@ -14,15 +19,16 @@ export async function GET(
   const { licenciatarioId } = await params;
   const service = createServiceClient();
 
-  const [{ data: lic, error: licError }, { data: contacts, error: contactsError }] = await Promise.all([
-    service
-      .from("licenciatarios")
-      .select("*")
-      .eq("id", licenciatarioId)
-      .is("deleted_at", null)
-      .maybeSingle(),
-    service.from("licenciatario_contacts").select("*").eq("licenciatario_id", licenciatarioId),
-  ]);
+  const [{ data: lic, error: licError }, { data: contacts, error: contactsError }] =
+    await Promise.all([
+      service
+        .from("licenciatarios")
+        .select("*")
+        .eq("id", licenciatarioId)
+        .is("deleted_at", null)
+        .maybeSingle(),
+      service.from("licenciatario_contacts").select("*").eq("licenciatario_id", licenciatarioId),
+    ]);
 
   if (licError) return NextResponse.json({ error: licError.message }, { status: 500 });
   if (contactsError) return NextResponse.json({ error: contactsError.message }, { status: 500 });
@@ -113,8 +119,12 @@ export async function PUT(
     ...(body.rut_cuit !== undefined ? { rut_cuit: normalizeRutCuit(body.rut_cuit) } : {}),
     ...(body.domicilio !== undefined ? { domicilio: body.domicilio.trim() } : {}),
     ...(body.tipo_entidad !== undefined ? { tipo_entidad: body.tipo_entidad.trim() } : {}),
-    ...(body.regimen_tributario !== undefined ? { regimen_tributario: body.regimen_tributario.trim() } : {}),
-    ...(body.numero_inscripcion !== undefined ? { numero_inscripcion: body.numero_inscripcion?.trim() || null } : {}),
+    ...(body.regimen_tributario !== undefined
+      ? { regimen_tributario: body.regimen_tributario.trim() }
+      : {}),
+    ...(body.numero_inscripcion !== undefined
+      ? { numero_inscripcion: body.numero_inscripcion?.trim() || null }
+      : {}),
     ...(body.actividad_principal !== undefined
       ? { actividad_principal: body.actividad_principal.trim() }
       : {}),
@@ -142,7 +152,11 @@ export async function PUT(
       { onConflict: "licenciatario_id,contact_type" }
     );
   }
-  if (body.secondary_contact?.name && body.secondary_contact?.email && body.secondary_contact?.phone) {
+  if (
+    body.secondary_contact?.name &&
+    body.secondary_contact?.email &&
+    body.secondary_contact?.phone
+  ) {
     await service.from("licenciatario_contacts").upsert(
       {
         licenciatario_id: licenciatarioId,
@@ -157,7 +171,10 @@ export async function PUT(
 
   const changes = Object.entries(patch)
     .filter(([key]) => key !== "last_modified_by")
-    .filter(([key, value]) => String((current as Record<string, unknown>)[key] ?? "") !== String(value ?? ""))
+    .filter(
+      ([key, value]) =>
+        String((current as Record<string, unknown>)[key] ?? "") !== String(value ?? "")
+    )
     .map(([key, value]) => ({
       licenciatario_id: licenciatarioId,
       admin_user_id: user.id,

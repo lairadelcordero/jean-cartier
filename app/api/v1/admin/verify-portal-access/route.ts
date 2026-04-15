@@ -1,5 +1,5 @@
-import { createServiceClient } from "@/lib/supabase/service";
 import { evaluatePortalAccess } from "@/lib/admin/portal-access";
+import { createServiceClient } from "@/lib/supabase/service";
 import { NextResponse } from "next/server";
 
 export async function POST(request: Request) {
@@ -21,7 +21,8 @@ export async function POST(request: Request) {
     .is("deleted_at", null)
     .maybeSingle();
   if (licError) return NextResponse.json({ error: licError.message }, { status: 500 });
-  if (!licenciatario) return NextResponse.json({ error: "Licenciatario not found" }, { status: 404 });
+  if (!licenciatario)
+    return NextResponse.json({ error: "Licenciatario not found" }, { status: 404 });
 
   const { data: blockedIp, error: blockError } = await service
     .from("access_ip_blocks")

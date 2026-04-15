@@ -1,7 +1,12 @@
 import { logAdminAction } from "@/lib/admin/audit";
 import { requireAdminApi, requireEditorApi } from "@/lib/admin/auth";
+import {
+  isValidEmail,
+  isValidPhone,
+  isValidRutCuit,
+  normalizeRutCuit,
+} from "@/lib/admin/validation";
 import { createServiceClient } from "@/lib/supabase/service";
-import { isValidEmail, isValidPhone, isValidRutCuit, normalizeRutCuit } from "@/lib/admin/validation";
 import { NextResponse } from "next/server";
 
 const ALLOWED_SORT_BY = new Set(["name", "rut", "status", "expiration_date", "modified_date"]);
@@ -26,9 +31,15 @@ export async function GET(request: Request) {
       .get("status")
       ?.split(",")
       .map((value) => value.trim())
-      .filter((value): value is LicenciatarioStatus => LICENCIATARIO_STATUSES.has(value as LicenciatarioStatus)) ?? [];
+      .filter((value): value is LicenciatarioStatus =>
+        LICENCIATARIO_STATUSES.has(value as LicenciatarioStatus)
+      ) ?? [];
   const category =
-    searchParams.get("category")?.split(",").map((value) => value.trim()).filter(Boolean) ?? [];
+    searchParams
+      .get("category")
+      ?.split(",")
+      .map((value) => value.trim())
+      .filter(Boolean) ?? [];
   const expirationStatus = searchParams.get("expiration_status")?.trim() ?? "";
   const page = intParam(searchParams.get("page"), 1, 1, 999999);
   const limit = intParam(searchParams.get("limit"), 50, 1, 200);
@@ -59,7 +70,10 @@ export async function GET(request: Request) {
           ? "status"
           : "updated_at";
   query = query.order(orderColumn, {
-    ascending: ALLOWED_SORT_BY.has(sortBy) && ALLOWED_SORT_ORDER.has(sortOrder) ? sortOrder === "asc" : false,
+    ascending:
+      ALLOWED_SORT_BY.has(sortBy) && ALLOWED_SORT_ORDER.has(sortOrder)
+        ? sortOrder === "asc"
+        : false,
   });
   query = query.range(from, to);
 
@@ -82,10 +96,15 @@ export async function GET(request: Request) {
       : Promise.resolve({ data: [], error: null }),
   ]);
 
-  if (licenseRes.error) return NextResponse.json({ error: licenseRes.error.message }, { status: 500 });
-  if (paymentRes.error) return NextResponse.json({ error: paymentRes.error.message }, { status: 500 });
+  if (licenseRes.error)
+    return NextResponse.json({ error: licenseRes.error.message }, { status: 500 });
+  if (paymentRes.error)
+    return NextResponse.json({ error: paymentRes.error.message }, { status: 500 });
 
-  const licensesByLic = new Map<string, Array<{ category: string; status: string; expiration_date: string }>>();
+  const licensesByLic = new Map<
+    string,
+    Array<{ category: string; status: string; expiration_date: string }>
+  >();
   for (const row of licenseRes.data ?? []) {
     const list = licensesByLic.get(row.licenciatario_id) ?? [];
     list.push({
@@ -117,7 +136,8 @@ export async function GET(request: Request) {
       .sort((a, b) => new Date(a).getTime() - new Date(b).getTime())[0];
     const payments = paymentsByLic.get(row.id) ?? [];
     const hasOverdue = payments.some((payment) => payment.status === "overdue");
-    const primaryCategory = (licenses.find((license) => license.status === "active") ?? licenses[0])?.category ?? null;
+    const primaryCategory =
+      (licenses.find((license) => license.status === "active") ?? licenses[0])?.category ?? null;
 
     return {
       id: row.id,
@@ -180,7 +200,7 @@ export async function GET(request: Request) {
     return new NextResponse(csv, {
       headers: {
         "Content-Type": "text/csv; charset=utf-8",
-        "Content-Disposition": "attachment; filename=\"licenciatarios.csv\"",
+        "Content-Disposition": 'attachment; filename="licenciatarios.csv"',
       },
     });
   }
@@ -276,7 +296,11 @@ export async function POST(request: Request) {
       phone: primary?.phone?.trim() || "0000000000",
     },
   ];
-  if (body.secondary_contact?.name && body.secondary_contact?.email && body.secondary_contact?.phone) {
+  if (
+    body.secondary_contact?.name &&
+    body.secondary_contact?.email &&
+    body.secondary_contact?.phone
+  ) {
     contactsPayload.push({
       licenciatario_id: created.id,
       contact_type: "secondary",

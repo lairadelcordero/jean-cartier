@@ -6,7 +6,12 @@ export type VerifyDenyReason =
   | "ip_blocked";
 
 export type VerifyDecision =
-  | { access_granted: true; reason: "license_active"; license_expiration_date: string; cache_until: string }
+  | {
+      access_granted: true;
+      reason: "license_active";
+      license_expiration_date: string;
+      cache_until: string;
+    }
   | { access_granted: false; reason: VerifyDenyReason; message: string };
 
 export function evaluatePortalAccess(args: {

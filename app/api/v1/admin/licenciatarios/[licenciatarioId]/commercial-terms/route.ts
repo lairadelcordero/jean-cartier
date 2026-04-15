@@ -1,13 +1,19 @@
 import { logAdminAction } from "@/lib/admin/audit";
 import { requireAdminApi, requireEditorApi } from "@/lib/admin/auth";
-import { createServiceClient } from "@/lib/supabase/service";
 import { assertDateOrder } from "@/lib/admin/validation";
+import { createServiceClient } from "@/lib/supabase/service";
 import { NextResponse } from "next/server";
 
 const CONTRACT_TYPES = new Set(["one_time", "installments"]);
 const BILLING_FREQUENCIES = new Set(["monthly", "quarterly", "semiannual", "annual"]);
 const CURRENCIES = new Set(["ARS", "USD"]);
-const PAYMENT_MODELS = new Set(["monthly", "annual", "per_container", "per_quantity", "custom"] as const);
+const PAYMENT_MODELS = new Set([
+  "monthly",
+  "annual",
+  "per_container",
+  "per_quantity",
+  "custom",
+] as const);
 type PaymentModel = "monthly" | "annual" | "per_container" | "per_quantity" | "custom";
 
 export async function GET(
@@ -73,7 +79,11 @@ export async function POST(
     effective_date?: string;
     end_date?: string | null;
     payment_due_day?: number | null;
-    tariff_tiers?: Array<{ quantity_from: number; quantity_to: number | null; price_per_unit: number }>;
+    tariff_tiers?: Array<{
+      quantity_from: number;
+      quantity_to: number | null;
+      price_per_unit: number;
+    }>;
   };
 
   if (!body.contract_type || !CONTRACT_TYPES.has(body.contract_type)) {
@@ -83,16 +93,25 @@ export async function POST(
     body.contract_type === "installments" &&
     (!body.billing_frequency || !BILLING_FREQUENCIES.has(body.billing_frequency))
   ) {
-    return NextResponse.json({ error: "billing_frequency is required for installments contracts" }, { status: 400 });
+    return NextResponse.json(
+      { error: "billing_frequency is required for installments contracts" },
+      { status: 400 }
+    );
   }
   if (body.contract_type === "one_time" && body.installments_count && body.installments_count > 1) {
-    return NextResponse.json({ error: "one_time contracts cannot define installments_count > 1" }, { status: 422 });
+    return NextResponse.json(
+      { error: "one_time contracts cannot define installments_count > 1" },
+      { status: 422 }
+    );
   }
   if (!body.currency || !CURRENCIES.has(body.currency)) {
     return NextResponse.json({ error: "Invalid currency. Allowed: ARS or USD" }, { status: 400 });
   }
   if (body.currency === "USD" && (!body.usd_ars_exchange_rate || body.usd_ars_exchange_rate <= 0)) {
-    return NextResponse.json({ error: "usd_ars_exchange_rate is required for USD contracts" }, { status: 400 });
+    return NextResponse.json(
+      { error: "usd_ars_exchange_rate is required for USD contracts" },
+      { status: 400 }
+    );
   }
   if (!body.effective_date) {
     return NextResponse.json({ error: "effective_date is required" }, { status: 400 });
@@ -127,9 +146,13 @@ export async function POST(
       billing_frequency: body.contract_type === "installments" ? body.billing_frequency : null,
       base_tariff_amount: body.base_tariff_amount ?? 0,
       currency: body.currency,
-      usd_ars_exchange_rate: body.currency === "USD" ? body.usd_ars_exchange_rate ?? null : null,
+      usd_ars_exchange_rate: body.currency === "USD" ? (body.usd_ars_exchange_rate ?? null) : null,
       installments_count:
-        body.contract_type === "installments" ? (body.installments_count && body.installments_count > 0 ? body.installments_count : null) : null,
+        body.contract_type === "installments"
+          ? body.installments_count && body.installments_count > 0
+            ? body.installments_count
+            : null
+          : null,
       effective_date: body.effective_date,
       end_date: body.end_date ?? null,
       payment_due_day: body.payment_due_day ?? null,

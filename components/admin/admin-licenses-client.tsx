@@ -3,7 +3,13 @@
 import { useCallback, useEffect, useState } from "react";
 
 type Licenciatario = { id: string; razon_social: string; rut_cuit: string };
-type LicenseCategory = { id: string; name: string; slug: string; active: boolean; sort_order: number };
+type LicenseCategory = {
+  id: string;
+  name: string;
+  slug: string;
+  active: boolean;
+  sort_order: number;
+};
 type LicenseTier = {
   id: string;
   name: string;
@@ -41,7 +47,9 @@ export function AdminLicensesClient() {
   const [selectedCategoryId, setSelectedCategoryId] = useState("");
   const [selectedTierId, setSelectedTierId] = useState("");
   const [exclusive, setExclusive] = useState(false);
-  const [exclusiveScope, setExclusiveScope] = useState<"none" | "production" | "import" | "both">("none");
+  const [exclusiveScope, setExclusiveScope] = useState<"none" | "production" | "import" | "both">(
+    "none"
+  );
   const [agreedPrice, setAgreedPrice] = useState("");
   const [issueDate, setIssueDate] = useState(new Date().toISOString().slice(0, 10));
   const [expirationDate, setExpirationDate] = useState("");
@@ -68,7 +76,10 @@ export function AdminLicensesClient() {
     }).format(value);
   }
 
-  function exclusivityLabel(exclusiveValue?: boolean, scope?: "none" | "production" | "import" | "both") {
+  function exclusivityLabel(
+    exclusiveValue?: boolean,
+    scope?: "none" | "production" | "import" | "both"
+  ) {
     if (!exclusiveValue) return "No exclusiva (se puede asignar a varios)";
     if (scope === "production") return "Exclusiva en produccion";
     if (scope === "import") return "Exclusiva en importacion";
@@ -100,34 +111,37 @@ export function AdminLicensesClient() {
       fetch("/api/v1/admin/license-categories", { cache: "no-store" }),
       fetch("/api/v1/admin/license-tiers", { cache: "no-store" }),
     ]);
-    const categoriesBody = (await categoriesRes.json()) as { data?: LicenseCategory[]; error?: string };
+    const categoriesBody = (await categoriesRes.json()) as {
+      data?: LicenseCategory[];
+      error?: string;
+    };
     const tiersBody = (await tiersRes.json()) as { data?: LicenseTier[]; error?: string };
     if (!categoriesRes.ok || !tiersRes.ok) {
-      setError(categoriesBody.error ?? tiersBody.error ?? "No se pudo cargar catálogo de licencias");
+      setError(
+        categoriesBody.error ?? tiersBody.error ?? "No se pudo cargar catálogo de licencias"
+      );
       return;
     }
     const nextCategories = (categoriesBody.data ?? []).filter((row) => row.active);
     const nextTiers = (tiersBody.data ?? []).filter((row) => row.active);
     setCategories(nextCategories);
     setTiers(nextTiers);
-    if (!selectedCategoryId && nextCategories.length > 0) setSelectedCategoryId(nextCategories[0].id);
+    if (!selectedCategoryId && nextCategories.length > 0)
+      setSelectedCategoryId(nextCategories[0].id);
     if (!selectedTierId && nextTiers.length > 0) setSelectedTierId(nextTiers[0].id);
   }, [selectedCategoryId, selectedTierId]);
 
-  const loadLicenses = useCallback(
-    async (licenciatarioId: string) => {
-      const res = await fetch(`/api/v1/admin/licenciatarios/${licenciatarioId}/licenses?limit=200`, {
-        cache: "no-store",
-      });
-      const body = (await res.json()) as { data?: AdminLicense[]; error?: string };
-      if (!res.ok) {
-        setError(body.error ?? "No se pudo cargar licencias");
-        return;
-      }
-      setLicenses(body.data ?? []);
-    },
-    []
-  );
+  const loadLicenses = useCallback(async (licenciatarioId: string) => {
+    const res = await fetch(`/api/v1/admin/licenciatarios/${licenciatarioId}/licenses?limit=200`, {
+      cache: "no-store",
+    });
+    const body = (await res.json()) as { data?: AdminLicense[]; error?: string };
+    if (!res.ok) {
+      setError(body.error ?? "No se pudo cargar licencias");
+      return;
+    }
+    setLicenses(body.data ?? []);
+  }, []);
 
   useEffect(() => {
     void loadLicenciatarios();
@@ -333,16 +347,23 @@ export function AdminLicensesClient() {
         <div className="grid gap-3 md:grid-cols-2">
           <div className="space-y-2 rounded border border-jc-gray-100 p-3 text-sm">
             <label className="flex items-center gap-2">
-              <input type="checkbox" checked={exclusive} onChange={(e) => setExclusive(e.target.checked)} />
+              <input
+                type="checkbox"
+                checked={exclusive}
+                onChange={(e) => setExclusive(e.target.checked)}
+              />
               <span className="font-medium">Licencia exclusiva</span>
             </label>
             <p className="text-xs text-jc-gray-500">
-              Si esta activa, la licencia queda reservada para este licenciatario segun el alcance elegido.
+              Si esta activa, la licencia queda reservada para este licenciatario segun el alcance
+              elegido.
             </p>
             <select
               className="w-full rounded border border-jc-gray-100 px-3 py-2"
               value={exclusiveScope}
-              onChange={(e) => setExclusiveScope(e.target.value as "none" | "production" | "import" | "both")}
+              onChange={(e) =>
+                setExclusiveScope(e.target.value as "none" | "production" | "import" | "both")
+              }
               disabled={!exclusive}
             >
               <option value="none">Sin exclusividad</option>
@@ -387,11 +408,17 @@ export function AdminLicensesClient() {
             value={newCategoryName}
             onChange={(e) => setNewCategoryName(e.target.value)}
           />
-          <button type="submit" className="rounded border border-jc-gray-200 px-3 py-2 text-sm font-medium">
+          <button
+            type="submit"
+            className="rounded border border-jc-gray-200 px-3 py-2 text-sm font-medium"
+          >
             Crear
           </button>
         </form>
-        <form onSubmit={(e) => void createTier(e)} className="grid grid-cols-[1fr_140px_170px_auto] gap-2">
+        <form
+          onSubmit={(e) => void createTier(e)}
+          className="grid grid-cols-[1fr_140px_170px_auto] gap-2"
+        >
           <input
             className="rounded border border-jc-gray-100 px-3 py-2"
             placeholder="Nuevo plan (ej: Premium)"
@@ -414,12 +441,16 @@ export function AdminLicensesClient() {
             value={newTierExclusiveMultiplier}
             onChange={(e) => setNewTierExclusiveMultiplier(e.target.value)}
           />
-          <button type="submit" className="rounded border border-jc-gray-200 px-3 py-2 text-sm font-medium">
+          <button
+            type="submit"
+            className="rounded border border-jc-gray-200 px-3 py-2 text-sm font-medium"
+          >
             Crear
           </button>
         </form>
         <p className="text-xs text-jc-gray-500 md:col-span-2">
-          Precio base = valor sin exclusividad. Multiplicador de exclusividad: por ejemplo, 1.25 significa +25%.
+          Precio base = valor sin exclusividad. Multiplicador de exclusividad: por ejemplo, 1.25
+          significa +25%.
         </p>
       </div>
 

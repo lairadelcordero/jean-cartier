@@ -74,7 +74,7 @@ export async function GET(
       file_size: row.file_size,
       upload_date: row.created_at,
       uploaded_by: row.uploaded_by,
-      uploaded_by_name: row.uploaded_by ? users.get(row.uploaded_by) ?? row.uploaded_by : null,
+      uploaded_by_name: row.uploaded_by ? (users.get(row.uploaded_by) ?? row.uploaded_by) : null,
       description: row.description,
       version: row.version,
       is_current: row.is_current,

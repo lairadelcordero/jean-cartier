@@ -47,10 +47,15 @@ export function AdminAccessAuditClient() {
     async (licenciatarioId: string) => {
       const resultQuery = resultFilter ? `&result=${resultFilter}` : "";
       const [logsRes, summaryRes] = await Promise.all([
-        fetch(`/api/v1/admin/licenciatarios/${licenciatarioId}/access-logs?limit=100${resultQuery}`, {
+        fetch(
+          `/api/v1/admin/licenciatarios/${licenciatarioId}/access-logs?limit=100${resultQuery}`,
+          {
+            cache: "no-store",
+          }
+        ),
+        fetch(`/api/v1/admin/licenciatarios/${licenciatarioId}/access-summary`, {
           cache: "no-store",
         }),
-        fetch(`/api/v1/admin/licenciatarios/${licenciatarioId}/access-summary`, { cache: "no-store" }),
       ]);
       const logsBody = (await logsRes.json()) as { data?: AccessLog[]; error?: string };
       const summaryBody = (await summaryRes.json()) as AccessSummary & { error?: string };
