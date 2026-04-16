@@ -1,4 +1,7 @@
-import { adminCreateLicense, type AdminCreateLicenseBody } from "@/lib/admin/licenses-mutations";
+import {
+  adminCreateLicense,
+  type AdminCreateLicenseBody,
+} from "@/lib/admin/licenses-mutations";
 import { requireAdminApi, requireEditorApi } from "@/lib/admin/auth";
 import { createServiceClient } from "@/lib/supabase/service";
 import type { LicenseStatus } from "@/types/database";
@@ -12,13 +15,11 @@ function toInt(value: string | null, fallback: number, min: number, max: number)
 
 const LICENSE_STATUSES = new Set(["active", "inactive", "pending", "expired"] as const);
 
-export async function GET(
-  request: Request,
-  { params }: { params: Promise<{ licenciatarioId: string }> }
-) {
+/** Lista `licenciatario_licenses` con filtros opcionales (incl. sin titular). */
+export async function GET(request: Request) {
   const gate = await requireEditorApi();
   if (gate instanceof NextResponse) return gate;
-  const { licenciatarioId } = await params;
+
   const { searchParams } = new URL(request.url);
   const status: LicenseStatus[] =
     searchParams
@@ -35,6 +36,8 @@ export async function GET(
       .filter(Boolean) ?? [];
   const dateFrom = searchParams.get("expiration_date_from");
   const dateTo = searchParams.get("expiration_date_to");
+  const unassigned = searchParams.get("unassigned") === "1" || searchParams.get("unassigned") === "true";
+  const licParam = searchParams.get("licenciatario_id")?.trim();
   const page = toInt(searchParams.get("page"), 1, 1, 999999);
   const limit = toInt(searchParams.get("limit"), 50, 1, 200);
   const from = (page - 1) * limit;
@@ -44,14 +47,18 @@ export async function GET(
   let query = service
     .from("licenciatario_licenses")
     .select(
-      "id, category, category_id, tier_id, exclusive, exclusive_scope, agreed_price, status, issue_date, expiration_date, renewal_date, created_at, created_by",
-      {
-        count: "exact",
-      }
+      "id, licenciatario_id, category, category_id, tier_id, exclusive, exclusive_scope, agreed_price, status, issue_date, expiration_date, renewal_date, created_at, created_by",
+      { count: "exact" }
     )
-    .eq("licenciatario_id", licenciatarioId)
     .order("created_at", { ascending: false })
     .range(from, to);
+
+  if (unassigned) {
+    query = query.is("licenciatario_id", null);
+  } else if (licParam) {
+    query = query.eq("licenciatario_id", licParam);
+  }
+
   if (status.length > 0) query = query.in("status", status);
   if (category.length > 0) query = query.in("category", category);
   if (dateFrom) query = query.gte("expiration_date", dateFrom);
@@ -91,7 +98,6 @@ export async function GET(
   return NextResponse.json({
     data: (data ?? []).map((row) => ({
       ...row,
-      licenciatario_id: licenciatarioId,
       category_name: row.category_id
         ? (categoriesById.get(row.category_id) ?? row.category)
         : row.category,
@@ -101,20 +107,22 @@ export async function GET(
   });
 }
 
-export async function POST(
-  request: Request,
-  { params }: { params: Promise<{ licenciatarioId: string }> }
-) {
+export async function POST(request: Request) {
   const gate = await requireAdminApi();
   if (gate instanceof NextResponse) return gate;
   const { user } = gate;
-  const { licenciatarioId } = await params;
 
-  const body = (await request.json()) as AdminCreateLicenseBody;
+  const body = (await request.json()) as AdminCreateLicenseBody & {
+    licenciatario_id?: string | null;
+  };
+  const { licenciatario_id: licRaw, ...createBody } = body;
+  const licenciatarioId: string | null =
+    licRaw === undefined || licRaw === null ? null : String(licRaw).trim() || null;
+
   const service = createServiceClient();
   const result = await adminCreateLicense(service, user.id, {
     licenciatarioId,
-    body,
+    body: createBody,
   });
 
   if (!result.ok) {
@@ -130,6 +138,7 @@ export async function POST(
       issue_date: created.issue_date,
       expiration_date: created.expiration_date,
       created_date: created.created_at,
+      licenciatario_id: created.licenciatario_id,
     },
     { status: 201 }
   );

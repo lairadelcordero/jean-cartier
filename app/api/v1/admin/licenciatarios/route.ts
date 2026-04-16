@@ -1,5 +1,6 @@
 import { logAdminAction } from "@/lib/admin/audit";
 import { requireAdminApi, requireEditorApi } from "@/lib/admin/auth";
+import { resolveTipoEntidadToSlug } from "@/lib/admin/entity-types";
 import {
   isValidEmail,
   isValidPhone,
@@ -106,6 +107,7 @@ export async function GET(request: Request) {
     Array<{ category: string; status: string; expiration_date: string }>
   >();
   for (const row of licenseRes.data ?? []) {
+    if (row.licenciatario_id == null) continue;
     const list = licensesByLic.get(row.licenciatario_id) ?? [];
     list.push({
       category: row.category,
@@ -250,6 +252,14 @@ export async function POST(request: Request) {
   const generatedRut = `PEND-${Date.now()}-${Math.random().toString(36).slice(2, 8).toUpperCase()}`;
   const rut = hasRut ? normalizeRutCuit(body.rut_cuit ?? "") : generatedRut;
   const service = createServiceClient();
+
+  const tipoResolved = await resolveTipoEntidadToSlug(service, body.tipo_entidad, {
+    defaultSlug: "pendiente",
+  });
+  if ("error" in tipoResolved) {
+    return NextResponse.json({ error: tipoResolved.error }, { status: 400 });
+  }
+
   if (hasRut) {
     const { data: duplicate } = await service
       .from("licenciatarios")
@@ -268,7 +278,7 @@ export async function POST(request: Request) {
       razon_social: body.razon_social?.trim() || "Pendiente de completar",
       rut_cuit: rut,
       domicilio: body.domicilio?.trim() || "Pendiente",
-      tipo_entidad: body.tipo_entidad?.trim() || "pendiente",
+      tipo_entidad: tipoResolved.slug,
       regimen_tributario: body.regimen_tributario?.trim() || "pendiente",
       numero_inscripcion: body.numero_inscripcion?.trim() || null,
       actividad_principal: body.actividad_principal?.trim() || "Pendiente",

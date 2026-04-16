@@ -317,6 +317,36 @@ export interface Database {
         };
         Relationships: [];
       };
+      entity_types: {
+        Row: {
+          id: string;
+          name: string;
+          slug: string;
+          active: boolean;
+          sort_order: number;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          name: string;
+          slug: string;
+          active?: boolean;
+          sort_order?: number;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          name?: string;
+          slug?: string;
+          active?: boolean;
+          sort_order?: number;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Relationships: [];
+      };
       licenciatarios: {
         Row: {
           id: string;
@@ -413,7 +443,7 @@ export interface Database {
       licenciatario_licenses: {
         Row: {
           id: string;
-          licenciatario_id: string;
+          licenciatario_id: string | null;
           category: string;
           category_id: string | null;
           tier_id: string | null;
@@ -426,6 +456,11 @@ export interface Database {
           renewal_date: string | null;
           terms_accepted: boolean;
           notes: string | null;
+          description: string | null;
+          legal_counsel_name: string | null;
+          legal_counsel_email: string | null;
+          legal_counsel_phone: string | null;
+          patent_registration: string | null;
           created_by: string | null;
           last_modified_by: string | null;
           created_at: string;
@@ -433,7 +468,7 @@ export interface Database {
         };
         Insert: {
           id?: string;
-          licenciatario_id: string;
+          licenciatario_id?: string | null;
           category: string;
           category_id?: string | null;
           tier_id?: string | null;
@@ -446,6 +481,11 @@ export interface Database {
           renewal_date?: string | null;
           terms_accepted?: boolean;
           notes?: string | null;
+          description?: string | null;
+          legal_counsel_name?: string | null;
+          legal_counsel_email?: string | null;
+          legal_counsel_phone?: string | null;
+          patent_registration?: string | null;
           created_by?: string | null;
           last_modified_by?: string | null;
           created_at?: string;
@@ -453,7 +493,7 @@ export interface Database {
         };
         Update: {
           id?: string;
-          licenciatario_id?: string;
+          licenciatario_id?: string | null;
           category?: string;
           category_id?: string | null;
           tier_id?: string | null;
@@ -466,6 +506,11 @@ export interface Database {
           renewal_date?: string | null;
           terms_accepted?: boolean;
           notes?: string | null;
+          description?: string | null;
+          legal_counsel_name?: string | null;
+          legal_counsel_email?: string | null;
+          legal_counsel_phone?: string | null;
+          patent_registration?: string | null;
           created_by?: string | null;
           last_modified_by?: string | null;
           created_at?: string;
@@ -480,6 +525,7 @@ export interface Database {
           slug: string;
           active: boolean;
           sort_order: number;
+          parent_id: string | null;
           created_at: string;
           updated_at: string;
         };
@@ -489,6 +535,7 @@ export interface Database {
           slug: string;
           active?: boolean;
           sort_order?: number;
+          parent_id?: string | null;
           created_at?: string;
           updated_at?: string;
         };
@@ -498,6 +545,7 @@ export interface Database {
           slug?: string;
           active?: boolean;
           sort_order?: number;
+          parent_id?: string | null;
           created_at?: string;
           updated_at?: string;
         };
@@ -744,6 +792,10 @@ export interface Database {
           notes: string | null;
           recorded_by: string | null;
           recorded_at: string;
+          fx_rate_used: number | null;
+          fx_date: string | null;
+          fx_reference_note: string | null;
+          amount_ars_equivalent: number | null;
         };
         Insert: {
           id?: string;
@@ -757,6 +809,10 @@ export interface Database {
           notes?: string | null;
           recorded_by?: string | null;
           recorded_at?: string;
+          fx_rate_used?: number | null;
+          fx_date?: string | null;
+          fx_reference_note?: string | null;
+          amount_ars_equivalent?: number | null;
         };
         Update: {
           id?: string;
@@ -770,6 +826,10 @@ export interface Database {
           notes?: string | null;
           recorded_by?: string | null;
           recorded_at?: string;
+          fx_rate_used?: number | null;
+          fx_date?: string | null;
+          fx_reference_note?: string | null;
+          amount_ars_equivalent?: number | null;
         };
         Relationships: [];
       };

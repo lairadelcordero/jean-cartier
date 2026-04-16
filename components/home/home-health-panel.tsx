@@ -67,7 +67,10 @@ function EnvBadge({ env }: { env: string }) {
   );
 }
 
-export function HomeHealthPanel({ appEnv }: { appEnv: string }) {
+export function HomeHealthPanel({
+  appEnv,
+  deployedAt,
+}: { appEnv: string; deployedAt: string | null }) {
   const [health, setHealth] = useState<HealthPayload | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -100,6 +103,25 @@ export function HomeHealthPanel({ appEnv }: { appEnv: string }) {
       : health?.status === "error"
         ? connectionToDisplay(health.mercadopago)
         : null;
+
+  const deployLabel = deployedAt
+    ? new Date(deployedAt).toLocaleString("es-AR", {
+        dateStyle: "short",
+        timeStyle: "short",
+      })
+    : "No disponible";
+
+  const dbHint =
+    health?.status === "error" && health.database === "disconnected"
+      ? health.error === "Multiple system failures" || health.error === "Database connection failed"
+        ? "Revisar variables de Supabase y migraciones aplicadas."
+        : health.error
+      : null;
+
+  const mpHint =
+    health?.status === "error" && health.mercadopago === "disconnected"
+      ? "Configurar MERCADO_PAGO_ACCESS_TOKEN en el entorno de deploy."
+      : null;
 
   return (
     <>
@@ -141,30 +163,24 @@ export function HomeHealthPanel({ appEnv }: { appEnv: string }) {
               <li className="flex items-center justify-between py-3">
                 <div>
                   <p className="text-sm font-medium text-jc-black">Base de Datos</p>
-                  {health.status === "error" && health.database === "disconnected" && (
-                    <p className="mt-0.5 max-w-xs text-xs text-jc-gray-700 font-inter">
-                      {health.error}
-                    </p>
-                  )}
+                  {dbHint ? (
+                    <p className="mt-0.5 max-w-xs text-xs text-jc-gray-700 font-inter">{dbHint}</p>
+                  ) : null}
                 </div>
                 {dbDisplay && <StatusBadge status={dbDisplay} />}
               </li>
               <li className="flex items-center justify-between py-3">
                 <div>
                   <p className="text-sm font-medium text-jc-black">Mercado Pago</p>
-                  {health.status === "error" && health.mercadopago === "disconnected" && (
-                    <p className="mt-0.5 max-w-xs text-xs text-jc-gray-700 font-inter">
-                      {health.error}
-                    </p>
-                  )}
+                  {mpHint ? (
+                    <p className="mt-0.5 max-w-xs text-xs text-jc-gray-700 font-inter">{mpHint}</p>
+                  ) : null}
                 </div>
                 {mpDisplay && <StatusBadge status={mpDisplay} />}
               </li>
             </ul>
             <div className="mt-4 flex items-center justify-between border-t border-jc-gray-100 pt-3">
-              <p className="text-xs text-jc-gray-500 font-inter">
-                Última verificación: {new Date(health.timestamp).toLocaleTimeString("es-AR")}
-              </p>
+              <p className="text-xs text-jc-gray-500 font-inter">Último deploy: {deployLabel}</p>
               <StatusBadge status={health.status === "ok" ? "healthy" : "error"} />
             </div>
           </>

@@ -1,30 +1,30 @@
-import { adminPatchLicense } from "@/lib/admin/licenses-mutations";
+import { adminPatchLicense, type AdminPatchLicenseBody } from "@/lib/admin/licenses-mutations";
 import { requireAdminApi } from "@/lib/admin/auth";
 import { createServiceClient } from "@/lib/supabase/service";
 import { NextResponse } from "next/server";
 
-const ALLOWED_STATUS = new Set(["active", "inactive", "expired"] as const);
-type AllowedStatus = "active" | "inactive" | "expired";
-
 export async function PATCH(
   request: Request,
-  { params }: { params: Promise<{ licenciatarioId: string; licenseId: string }> }
+  { params }: { params: Promise<{ licenseId: string }> }
 ) {
   const gate = await requireAdminApi();
   if (gate instanceof NextResponse) return gate;
   const { user } = gate;
-  const { licenciatarioId, licenseId } = await params;
-  const body = (await request.json()) as { status?: AllowedStatus; notes?: string };
+  const { licenseId } = await params;
+  const body = (await request.json()) as AdminPatchLicenseBody;
 
-  if (!body.status || !ALLOWED_STATUS.has(body.status)) {
-    return NextResponse.json({ error: "Invalid status" }, { status: 400 });
+  if (
+    body.status === undefined &&
+    body.licenciatario_id === undefined &&
+    body.notes === undefined
+  ) {
+    return NextResponse.json({ error: "Nothing to update" }, { status: 400 });
   }
 
   const service = createServiceClient();
   const result = await adminPatchLicense(service, user.id, {
     licenseId,
-    licenciatarioIdMustMatch: licenciatarioId,
-    body: { status: body.status, notes: body.notes },
+    body,
   });
 
   if (!result.ok) {
@@ -35,6 +35,7 @@ export async function PATCH(
   return NextResponse.json({
     id: updated.id,
     status: updated.status,
+    licenciatario_id: updated.licenciatario_id,
     last_modified_date: updated.updated_at,
   });
 }

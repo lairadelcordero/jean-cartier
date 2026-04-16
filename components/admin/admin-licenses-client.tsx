@@ -1,5 +1,6 @@
 "use client";
 
+import { AdminStatusDot } from "@/components/admin/admin-status-dot";
 import { useCallback, useEffect, useState } from "react";
 
 type Licenciatario = { id: string; razon_social: string; rut_cuit: string };
@@ -20,7 +21,7 @@ type LicenseTier = {
 };
 type AdminLicense = {
   id: string;
-  licenciatario_id: string;
+  licenciatario_id: string | null;
   category: string;
   category_name?: string;
   tier_name?: string | null;
@@ -34,7 +35,26 @@ type AdminLicense = {
   created_date: string;
 };
 
+type RegistryLicense = {
+  id: string;
+  licenciatario_id: string | null;
+  category: string;
+  category_path: string;
+  parent_category_name: string | null;
+  licenciatario_razon_social: string | null;
+  licenciatario_rut_cuit: string | null;
+  exclusive?: boolean;
+  exclusive_scope?: "none" | "production" | "import" | "both";
+  status: AdminLicense["status"];
+  issue_date: string;
+  expiration_date: string;
+};
+
+/** Valor de selector: licencias sin titular en la base (`licenciatario_id` NULL). */
+const VIEW_UNASSIGNED = "__unassigned__";
+
 export function AdminLicensesClient() {
+  const [registry, setRegistry] = useState<RegistryLicense[]>([]);
   const [licenses, setLicenses] = useState<AdminLicense[]>([]);
   const [licenciatarios, setLicenciatarios] = useState<Licenciatario[]>([]);
   const [categories, setCategories] = useState<LicenseCategory[]>([]);
@@ -87,6 +107,18 @@ export function AdminLicensesClient() {
     return "Exclusiva";
   }
 
+  const loadRegistry = useCallback(async () => {
+    const res = await fetch("/api/v1/admin/licenciatario-licenses/all?limit=200", {
+      cache: "no-store",
+    });
+    const body = (await res.json()) as { data?: RegistryLicense[]; error?: string };
+    if (!res.ok) {
+      setError(body.error ?? "No se pudo cargar el listado global de licencias");
+      return;
+    }
+    setRegistry(body.data ?? []);
+  }, []);
+
   const loadLicenciatarios = useCallback(async () => {
     setLoading(true);
     setError(null);
@@ -100,11 +132,10 @@ export function AdminLicensesClient() {
       setLoading(false);
       return;
     }
-    const rows = body.data ?? [];
-    setLicenciatarios(rows);
-    if (!selectedLicenciatario && rows.length > 0) setSelectedLicenciatario(rows[0].id);
+    setLicenciatarios(body.data ?? []);
+    setSelectedLicenciatario((prev) => (prev ? prev : VIEW_UNASSIGNED));
     setLoading(false);
-  }, [selectedLicenciatario]);
+  }, []);
 
   const loadCatalogs = useCallback(async () => {
     const [categoriesRes, tiersRes] = await Promise.all([
@@ -131,10 +162,13 @@ export function AdminLicensesClient() {
     if (!selectedTierId && nextTiers.length > 0) setSelectedTierId(nextTiers[0].id);
   }, [selectedCategoryId, selectedTierId]);
 
-  const loadLicenses = useCallback(async (licenciatarioId: string) => {
-    const res = await fetch(`/api/v1/admin/licenciatarios/${licenciatarioId}/licenses?limit=200`, {
-      cache: "no-store",
-    });
+  const loadLicenses = useCallback(async (selection: string) => {
+    if (!selection) return;
+    const url =
+      selection === VIEW_UNASSIGNED
+        ? "/api/v1/admin/licenses?unassigned=1&limit=200"
+        : `/api/v1/admin/licenciatarios/${selection}/licenses?limit=200`;
+    const res = await fetch(url, { cache: "no-store" });
     const body = (await res.json()) as { data?: AdminLicense[]; error?: string };
     if (!res.ok) {
       setError(body.error ?? "No se pudo cargar licencias");
@@ -145,7 +179,8 @@ export function AdminLicensesClient() {
 
   useEffect(() => {
     void loadLicenciatarios();
-  }, [loadLicenciatarios]);
+    void loadRegistry();
+  }, [loadLicenciatarios, loadRegistry]);
 
   useEffect(() => {
     void loadCatalogs();
@@ -157,13 +192,18 @@ export function AdminLicensesClient() {
 
   async function assignLicense(e: React.FormEvent) {
     e.preventDefault();
-    if (!selectedLicenciatario) return;
+    if (!selectedCategoryId || !expirationDate) return;
     setSaving(true);
     setError(null);
-    const res = await fetch(`/api/v1/admin/licenciatarios/${selectedLicenciatario}/licenses`, {
+    const licenciatarioPayload: { licenciatario_id: string | null } =
+      selectedLicenciatario === VIEW_UNASSIGNED
+        ? { licenciatario_id: null }
+        : { licenciatario_id: selectedLicenciatario };
+    const res = await fetch("/api/v1/admin/licenses", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
+        ...licenciatarioPayload,
         category_id: selectedCategoryId,
         tier_id: selectedTierId || null,
         exclusive,
@@ -184,8 +224,10 @@ export function AdminLicensesClient() {
     setNotes("");
     setAgreedPrice("");
     await loadLicenses(selectedLicenciatario);
+    await loadRegistry();
     setSaving(false);
   }
+
 
   async function createCategory(e: React.FormEvent) {
     e.preventDefault();
@@ -230,42 +272,109 @@ export function AdminLicensesClient() {
   }
 
   async function changeStatus(licenseId: string, status: "active" | "inactive" | "expired") {
-    if (!selectedLicenciatario) return;
     setError(null);
-    const res = await fetch(
-      `/api/v1/admin/licenciatarios/${selectedLicenciatario}/licenses/${licenseId}`,
-      {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ status }),
-      }
-    );
+    const res = await fetch(`/api/v1/admin/licenses/${licenseId}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ status }),
+    });
     const body = (await res.json()) as { error?: string };
     if (!res.ok) {
       setError(body.error ?? "No se pudo actualizar estado");
       return;
     }
     await loadLicenses(selectedLicenciatario);
+    await loadRegistry();
+  }
+
+  function licenseStatusTone(s: AdminLicense["status"]) {
+    if (s === "active") return "active";
+    if (s === "pending") return "pending";
+    if (s === "expired") return "expired";
+    return "inactive";
   }
 
   return (
     <div className="space-y-6">
+      <section className="rounded-xl border border-jc-gray-100 bg-jc-white p-4 shadow-jc">
+        <h2 className="mb-1 text-lg font-semibold">Listado global de licencias</h2>
+        <p className="mb-3 text-sm text-jc-gray-600">
+          Vista jerárquica por rubro (cuando el catálogo tiene padres) y estado por licencia.
+        </p>
+        <div className="overflow-x-auto">
+          <table className="min-w-full text-sm">
+            <thead>
+              <tr className="border-b border-jc-gray-100 bg-jc-gray-50 text-left">
+                <th className="px-3 py-2 w-8" aria-hidden />
+                <th className="px-3 py-2">Rubro</th>
+                <th className="px-3 py-2">Licenciatario</th>
+                <th className="px-3 py-2">Estado</th>
+                <th className="px-3 py-2">Exclusividad</th>
+                <th className="px-3 py-2">Vencimiento</th>
+              </tr>
+            </thead>
+            <tbody>
+              {registry.length === 0 ? (
+                <tr>
+                  <td className="px-3 py-3 text-jc-gray-500" colSpan={6}>
+                    No hay licencias registradas.
+                  </td>
+                </tr>
+              ) : (
+                registry.map((row) => (
+                  <tr key={row.id} className="border-b border-jc-gray-100">
+                    <td className="px-3 py-2">
+                      <AdminStatusDot tone={licenseStatusTone(row.status)} label={row.status} />
+                    </td>
+                    <td className="px-3 py-2">
+                      <span className="font-medium">{row.category_path}</span>
+                      {row.parent_category_name ? (
+                        <span className="ml-1 text-xs text-jc-gray-500">
+                          ({row.parent_category_name})
+                        </span>
+                      ) : null}
+                    </td>
+                    <td className="px-3 py-2">
+                      {row.licenciatario_id == null
+                        ? "Sin titular"
+                        : (row.licenciatario_razon_social ?? "—")}
+                      {row.licenciatario_id != null && row.licenciatario_rut_cuit ? (
+                        <span className="block text-xs text-jc-gray-500">
+                          {row.licenciatario_rut_cuit}
+                        </span>
+                      ) : null}
+                    </td>
+                    <td className="px-3 py-2">{row.status}</td>
+                    <td className="px-3 py-2">
+                      {exclusivityLabel(row.exclusive, row.exclusive_scope)}
+                    </td>
+                    <td className="px-3 py-2">{formatDate(row.expiration_date)}</td>
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
+        </div>
+      </section>
+
       <form
         onSubmit={(e) => void assignLicense(e)}
         className="space-y-4 rounded-xl border border-jc-gray-100 bg-jc-white p-4"
       >
         <div className="grid gap-3 md:grid-cols-3">
           <label className="space-y-1 text-sm">
-            <span className="font-medium">Licenciatario</span>
+            <span className="font-medium">Titular (opcional)</span>
+            <p className="text-xs font-normal leading-snug text-jc-gray-500">
+              Podés crear la licencia solo con rubro y fechas; el titular se asocia cuando exista
+              contraparte o unidad (aunque sea años después).
+            </p>
             <select
               className="w-full rounded border border-jc-gray-100 px-3 py-2"
               value={selectedLicenciatario}
               onChange={(e) => setSelectedLicenciatario(e.target.value)}
               required
             >
-              <option value="" disabled>
-                Seleccionar licenciatario
-              </option>
+              <option value={VIEW_UNASSIGNED}>Sin titular</option>
               {licenciatarios.map((lic) => (
                 <option key={lic.id} value={lic.id}>
                   {lic.razon_social} ({lic.rut_cuit})
@@ -355,8 +464,7 @@ export function AdminLicensesClient() {
               <span className="font-medium">Licencia exclusiva</span>
             </label>
             <p className="text-xs text-jc-gray-500">
-              Si esta activa, la licencia queda reservada para este licenciatario segun el alcance
-              elegido.
+              Si esta activa, la licencia queda reservada para el titular segun el alcance elegido.
             </p>
             <select
               className="w-full rounded border border-jc-gray-100 px-3 py-2"
@@ -393,7 +501,7 @@ export function AdminLicensesClient() {
 
         <button
           type="submit"
-          disabled={saving || !selectedLicenciatario}
+          disabled={saving || !selectedCategoryId || !expirationDate}
           className="rounded bg-jc-black px-4 py-2 text-sm font-medium text-jc-white disabled:opacity-50"
         >
           {saving ? "Creando..." : "Crear licencia"}
@@ -482,7 +590,9 @@ export function AdminLicensesClient() {
               licenses.map((l) => (
                 <tr key={l.id} className="border-b border-jc-gray-100">
                   <td className="px-3 py-2">
-                    {licenciatarioById.get(l.licenciatario_id)?.razon_social ?? "Licenciatario"}
+                    {l.licenciatario_id == null
+                      ? "Sin titular"
+                      : (licenciatarioById.get(l.licenciatario_id)?.razon_social ?? "—")}
                   </td>
                   <td className="px-3 py-2">{l.category_name ?? l.category}</td>
                   <td className="px-3 py-2">{l.tier_name ?? "-"}</td>

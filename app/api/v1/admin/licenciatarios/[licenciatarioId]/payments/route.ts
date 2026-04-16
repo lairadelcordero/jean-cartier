@@ -40,7 +40,7 @@ export async function GET(
   let query = service
     .from("licenciatario_payments")
     .select(
-      "id, payment_date, amount, currency, payment_method, reference, status, recorded_at, recorded_by",
+      "id, payment_date, amount, currency, payment_method, reference, status, recorded_at, recorded_by, fx_rate_used, fx_date, fx_reference_note, amount_ars_equivalent, notes",
       {
         count: "exact",
       }
@@ -76,6 +76,9 @@ export async function POST(
     payment_method?: PaymentMethod;
     reference?: string;
     notes?: string;
+    fx_rate_used?: number;
+    fx_date?: string;
+    fx_reference_note?: string;
   };
 
   if (!body.payment_date || !body.amount || !body.payment_method) {
@@ -91,6 +94,23 @@ export async function POST(
     return NextResponse.json({ error: "Invalid currency. Allowed: ARS or USD" }, { status: 400 });
   }
 
+  const currency = body.currency ?? "ARS";
+  let fx_rate_used: number | null = null;
+  let fx_date: string | null = null;
+  let amount_ars_equivalent: number | null = null;
+  if (currency === "USD") {
+    const rate = body.fx_rate_used;
+    if (rate == null || Number.isNaN(rate) || rate <= 0) {
+      return NextResponse.json(
+        { error: "fx_rate_used (US$1 = AR$X) es obligatorio para pagos en USD" },
+        { status: 400 }
+      );
+    }
+    fx_rate_used = rate;
+    fx_date = body.fx_date?.trim() || body.payment_date;
+    amount_ars_equivalent = Math.round(body.amount * rate * 100) / 100;
+  }
+
   const service = createServiceClient();
   const { data, error } = await service
     .from("licenciatario_payments")
@@ -98,12 +118,16 @@ export async function POST(
       licenciatario_id: licenciatarioId,
       payment_date: body.payment_date,
       amount: body.amount,
-      currency: body.currency ?? "ARS",
+      currency,
       payment_method: body.payment_method,
       reference: body.reference?.trim() || null,
       status: "received",
       notes: body.notes?.trim() || null,
       recorded_by: user.id,
+      fx_rate_used,
+      fx_date,
+      fx_reference_note: body.fx_reference_note?.trim() || null,
+      amount_ars_equivalent,
     })
     .select("*")
     .single();

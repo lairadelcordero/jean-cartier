@@ -19,15 +19,20 @@ export function LoginForm() {
     e.preventDefault();
     setError(null);
     setLoading(true);
-    const supabase = createClient();
-    const { error: err } = await supabase.auth.signInWithPassword({ email, password });
-    setLoading(false);
-    if (err) {
-      setError(err.message);
-      return;
+    try {
+      const supabase = createClient();
+      const { error: err } = await supabase.auth.signInWithPassword({ email, password });
+      if (err) {
+        setError(err.message);
+        return;
+      }
+      router.push(next.startsWith("/") ? next : "/dashboard");
+      router.refresh();
+    } catch {
+      setError("No se pudo completar el inicio de sesión. Reintentá en unos segundos.");
+    } finally {
+      setLoading(false);
     }
-    router.push(next.startsWith("/") ? next : "/dashboard");
-    router.refresh();
   }
 
   return (

@@ -15,12 +15,19 @@ type DocRow = {
 };
 type UserRow = { id: string; razon_social: string; rut_cuit: string };
 
-export function AdminDocumentsClient() {
+type Props = {
+  /** Si se define, el listado y la carga quedan fijados a este licenciatario (modo ficha). */
+  licenciatarioId?: string;
+  licenciatarioLabel?: string;
+};
+
+export function AdminDocumentsClient({ licenciatarioId, licenciatarioLabel }: Props = {}) {
+  const embedded = Boolean(licenciatarioId);
   const [docs, setDocs] = useState<DocRow[]>([]);
   const [users, setUsers] = useState<UserRow[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
-  const [selectedLicenciatario, setSelectedLicenciatario] = useState("");
+  const [selectedLicenciatario, setSelectedLicenciatario] = useState(licenciatarioId ?? "");
   const [form, setForm] = useState({
     document_type: "other",
     description: "",
@@ -41,8 +48,8 @@ export function AdminDocumentsClient() {
     }
   }, [selectedLicenciatario]);
 
-  const loadDocs = useCallback(async (licenciatarioId: string) => {
-    const docsRes = await fetch(`/api/v1/admin/licenciatarios/${licenciatarioId}/documents`, {
+  const loadDocs = useCallback(async (id: string) => {
+    const docsRes = await fetch(`/api/v1/admin/licenciatarios/${id}/documents`, {
       cache: "no-store",
     });
     const docsBody = (await docsRes.json()) as { data?: DocRow[]; error?: string };
@@ -54,8 +61,12 @@ export function AdminDocumentsClient() {
   }, []);
 
   useEffect(() => {
+    if (licenciatarioId) {
+      setSelectedLicenciatario(licenciatarioId);
+      return;
+    }
     void loadData();
-  }, [loadData]);
+  }, [licenciatarioId, loadData]);
 
   useEffect(() => {
     if (selectedLicenciatario) void loadDocs(selectedLicenciatario);
@@ -91,25 +102,37 @@ export function AdminDocumentsClient() {
 
   return (
     <div className="space-y-6">
+      {embedded ? (
+        <div className="rounded-lg border border-jc-gray-100 bg-jc-gray-50/80 px-4 py-3 text-sm text-jc-gray-700">
+          <p className="font-medium text-jc-black">Documentos de la ficha</p>
+          {licenciatarioLabel ? (
+            <p className="mt-0.5">
+              Archivos asociados a <span className="font-medium">{licenciatarioLabel}</span>.
+            </p>
+          ) : null}
+        </div>
+      ) : null}
       <form
         onSubmit={(e) => void createDoc(e)}
         className="grid gap-3 rounded-xl border border-jc-gray-100 bg-jc-white p-4 md:grid-cols-3"
       >
-        <select
-          className="rounded border border-jc-gray-100 px-3 py-2"
-          value={selectedLicenciatario}
-          onChange={(e) => setSelectedLicenciatario(e.target.value)}
-          required
-        >
-          <option value="" disabled>
-            Licenciatario
-          </option>
-          {users.map((u) => (
-            <option key={u.id} value={u.id}>
-              {u.razon_social} ({u.rut_cuit})
+        {embedded ? null : (
+          <select
+            className="rounded border border-jc-gray-100 px-3 py-2"
+            value={selectedLicenciatario}
+            onChange={(e) => setSelectedLicenciatario(e.target.value)}
+            required
+          >
+            <option value="" disabled>
+              Licenciatario
             </option>
-          ))}
-        </select>
+            {users.map((u) => (
+              <option key={u.id} value={u.id}>
+                {u.razon_social} ({u.rut_cuit})
+              </option>
+            ))}
+          </select>
+        )}
         <select
           className="rounded border border-jc-gray-100 px-3 py-2"
           value={form.document_type}

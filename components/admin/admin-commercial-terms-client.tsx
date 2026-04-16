@@ -24,11 +24,25 @@ type Payment = {
   payment_method: string;
   reference: string | null;
   status: string;
+  fx_rate_used?: number | null;
+  fx_date?: string | null;
+  fx_reference_note?: string | null;
+  amount_ars_equivalent?: number | null;
+  notes?: string | null;
 };
 
-export function AdminCommercialTermsClient() {
+type CommercialTermsProps = {
+  licenciatarioId?: string;
+  licenciatarioLabel?: string;
+};
+
+export function AdminCommercialTermsClient({
+  licenciatarioId: fixedLicId,
+  licenciatarioLabel,
+}: CommercialTermsProps = {}) {
+  const embedded = Boolean(fixedLicId);
   const [licenciatarios, setLicenciatarios] = useState<Licenciatario[]>([]);
-  const [selectedLicenciatario, setSelectedLicenciatario] = useState("");
+  const [selectedLicenciatario, setSelectedLicenciatario] = useState(fixedLicId ?? "");
   const [history, setHistory] = useState<TermHistory[]>([]);
   const [payments, setPayments] = useState<Payment[]>([]);
   const [error, setError] = useState<string | null>(null);
@@ -52,6 +66,9 @@ export function AdminCommercialTermsClient() {
     payment_method: "bank_transfer",
     reference: "",
     notes: "",
+    fx_rate_used: "",
+    fx_date: new Date().toISOString().slice(0, 10),
+    fx_reference_note: "",
   });
 
   const loadLicenciatarios = useCallback(async () => {
@@ -86,8 +103,12 @@ export function AdminCommercialTermsClient() {
   }, []);
 
   useEffect(() => {
+    if (embedded) {
+      if (fixedLicId) setSelectedLicenciatario(fixedLicId);
+      return;
+    }
     void loadLicenciatarios();
-  }, [loadLicenciatarios]);
+  }, [embedded, fixedLicId, loadLicenciatarios]);
 
   useEffect(() => {
     if (selectedLicenciatario) void loadData(selectedLicenciatario);
@@ -140,17 +161,23 @@ export function AdminCommercialTermsClient() {
     if (!selectedLicenciatario) return;
     setSaving(true);
     setError(null);
+    const payload: Record<string, unknown> = {
+      payment_date: paymentDraft.payment_date,
+      amount: Number(paymentDraft.amount),
+      currency: paymentDraft.currency,
+      payment_method: paymentDraft.payment_method,
+      reference: paymentDraft.reference || null,
+      notes: paymentDraft.notes || null,
+    };
+    if (paymentDraft.currency === "USD") {
+      payload.fx_rate_used = Number(paymentDraft.fx_rate_used);
+      payload.fx_date = paymentDraft.fx_date || paymentDraft.payment_date;
+      payload.fx_reference_note = paymentDraft.fx_reference_note || null;
+    }
     const res = await fetch(`/api/v1/admin/licenciatarios/${selectedLicenciatario}/payments`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        payment_date: paymentDraft.payment_date,
-        amount: Number(paymentDraft.amount),
-        currency: paymentDraft.currency,
-        payment_method: paymentDraft.payment_method,
-        reference: paymentDraft.reference || null,
-        notes: paymentDraft.notes || null,
-      }),
+      body: JSON.stringify(payload),
     });
     const body = (await res.json()) as { error?: string };
     if (!res.ok) {
@@ -158,7 +185,14 @@ export function AdminCommercialTermsClient() {
       setSaving(false);
       return;
     }
-    setPaymentDraft((prev) => ({ ...prev, amount: "0", reference: "", notes: "" }));
+    setPaymentDraft((prev) => ({
+      ...prev,
+      amount: "0",
+      reference: "",
+      notes: "",
+      fx_rate_used: "",
+      fx_reference_note: "",
+    }));
     await loadData(selectedLicenciatario);
     setSaving(false);
   }
@@ -166,23 +200,41 @@ export function AdminCommercialTermsClient() {
   return (
     <div className="space-y-4">
       {error ? <p className="rounded bg-red-50 p-3 text-sm text-red-700">{error}</p> : null}
-      <div className="rounded-xl border border-jc-gray-100 bg-jc-white p-4">
-        <label htmlFor="commercial-terms-licenciatario" className="mb-2 block text-sm font-medium">
-          Licenciatario
-        </label>
-        <select
-          id="commercial-terms-licenciatario"
-          className="w-full max-w-xl rounded border border-jc-gray-100 px-3 py-2"
-          value={selectedLicenciatario}
-          onChange={(e) => setSelectedLicenciatario(e.target.value)}
-        >
-          {licenciatarios.map((lic) => (
-            <option key={lic.id} value={lic.id}>
-              {lic.razon_social} ({lic.rut_cuit})
-            </option>
-          ))}
-        </select>
-      </div>
+      {embedded ? (
+        <div className="rounded-lg border border-jc-gray-100 bg-jc-gray-50/80 px-4 py-3 text-sm text-jc-gray-700">
+          <p className="font-medium text-jc-black">Términos comerciales y pagos registrados</p>
+          {licenciatarioLabel ? (
+            <p className="mt-0.5">
+              Datos de gestión vinculados a <span className="font-medium">{licenciatarioLabel}</span>{" "}
+              (contrato acordado e historial de cobros). No sustituye al libro contable ni al sistema
+              financiero corporativo.
+            </p>
+          ) : (
+            <p className="mt-0.5">
+              Información asociada a la ficha del licenciatario; no es la parte contable central de la
+              empresa.
+            </p>
+          )}
+        </div>
+      ) : (
+        <div className="rounded-xl border border-jc-gray-100 bg-jc-white p-4">
+          <label htmlFor="commercial-terms-licenciatario" className="mb-2 block text-sm font-medium">
+            Licenciatario
+          </label>
+          <select
+            id="commercial-terms-licenciatario"
+            className="w-full max-w-xl rounded border border-jc-gray-100 px-3 py-2"
+            value={selectedLicenciatario}
+            onChange={(e) => setSelectedLicenciatario(e.target.value)}
+          >
+            {licenciatarios.map((lic) => (
+              <option key={lic.id} value={lic.id}>
+                {lic.razon_social} ({lic.rut_cuit})
+              </option>
+            ))}
+          </select>
+        </div>
+      )}
 
       <div className="grid gap-4 md:grid-cols-2">
         <form
@@ -330,6 +382,49 @@ export function AdminCommercialTermsClient() {
             <option value="ARS">ARS</option>
             <option value="USD">USD</option>
           </select>
+          {paymentDraft.currency === "USD" ? (
+            <>
+              <label className="block text-sm" htmlFor="pay-fx-rate">
+                <span className="mb-1 block text-jc-gray-700">
+                  Tipo de cambio del pago (US$1 = AR$X)
+                </span>
+                <input
+                  id="pay-fx-rate"
+                  className="w-full rounded border border-jc-gray-100 px-3 py-2"
+                  type="number"
+                  step="0.0001"
+                  min={0}
+                  value={paymentDraft.fx_rate_used}
+                  onChange={(e) =>
+                    setPaymentDraft((prev) => ({ ...prev, fx_rate_used: e.target.value }))
+                  }
+                />
+              </label>
+              <label className="block text-sm" htmlFor="pay-fx-date">
+                <span className="mb-1 block text-jc-gray-700">Fecha de la cotización</span>
+                <input
+                  id="pay-fx-date"
+                  className="w-full rounded border border-jc-gray-100 px-3 py-2"
+                  type="date"
+                  value={paymentDraft.fx_date}
+                  onChange={(e) =>
+                    setPaymentDraft((prev) => ({ ...prev, fx_date: e.target.value }))
+                  }
+                />
+              </label>
+              <label className="block text-sm" htmlFor="pay-fx-note">
+                <span className="mb-1 block text-jc-gray-700">Referencia / fuente (opcional)</span>
+                <input
+                  id="pay-fx-note"
+                  className="w-full rounded border border-jc-gray-100 px-3 py-2"
+                  value={paymentDraft.fx_reference_note}
+                  onChange={(e) =>
+                    setPaymentDraft((prev) => ({ ...prev, fx_reference_note: e.target.value }))
+                  }
+                />
+              </label>
+            </>
+          ) : null}
           <button
             type="submit"
             disabled={saving}
@@ -372,6 +467,14 @@ export function AdminCommercialTermsClient() {
                 <p>
                   {payment.payment_date} · {payment.amount} {payment.currency}
                 </p>
+                {payment.currency === "USD" && payment.fx_rate_used != null ? (
+                  <p className="text-xs text-jc-gray-600">
+                    TC pago: US$1 = AR${payment.fx_rate_used}
+                    {payment.amount_ars_equivalent != null
+                      ? ` · Equivalente ARS ${payment.amount_ars_equivalent}`
+                      : ""}
+                  </p>
+                ) : null}
                 <p>
                   {payment.payment_method} · {payment.status}
                 </p>

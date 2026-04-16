@@ -6,3 +6,13 @@ export function getPublicEnvironment(): string {
     "development"
   );
 }
+
+/** Best-effort deploy timestamp from Vercel/CI env vars. */
+export function getDeployTimestamp(): string | null {
+  return (
+    process.env.VERCEL_GIT_COMMIT_TIMESTAMP?.trim() ||
+    process.env.VERCEL_DEPLOYMENT_CREATED_AT?.trim() ||
+    process.env.NEXT_PUBLIC_DEPLOYED_AT?.trim() ||
+    null
+  );
+}

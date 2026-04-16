@@ -1,6 +1,6 @@
 import { HomeHealthPanel } from "@/components/home/home-health-panel";
 import { SiteAccessNav } from "@/components/site/site-access-nav";
-import { getPublicEnvironment } from "@/lib/app-env";
+import { getDeployTimestamp, getPublicEnvironment } from "@/lib/app-env";
 import Image from "next/image";
 import Link from "next/link";
 
@@ -15,6 +15,7 @@ const WEBP_SRC_SET =
 
 export default function HomePage() {
   const appEnv = getPublicEnvironment();
+  const deployedAt = getDeployTimestamp();
 
   return (
     <>
@@ -58,13 +59,13 @@ export default function HomePage() {
               unoptimized
             />
           </h1>
-          <HomeHealthPanel appEnv={appEnv} />
+          <HomeHealthPanel appEnv={appEnv} deployedAt={deployedAt} />
           <p className="mt-10 font-inter text-nav font-semibold uppercase tracking-ribbon text-jc-gray-500">
             <Link
-              href="/media-kit"
+              href={`/auth/login?next=${encodeURIComponent("/admin")}`}
               className="text-jc-gold underline-offset-4 hover:text-jc-black hover:underline"
             >
-              Media Kit y guías de estilo
+              Acceso Jean Cartier
             </Link>
           </p>
         </section>

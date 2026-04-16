@@ -1,5 +1,7 @@
 import { logAdminAction } from "@/lib/admin/audit";
 import { requireAdminApi, requireEditorApi } from "@/lib/admin/auth";
+import { resolveTipoEntidadToSlug } from "@/lib/admin/entity-types";
+import { evaluateLicenciatarioActivation } from "@/lib/admin/licenciatario-activation";
 import {
   isValidEmail,
   isValidPhone,
@@ -37,6 +39,27 @@ export async function GET(
   const primary = contacts?.find((contact) => contact.contact_type === "primary") ?? null;
   const secondary = contacts?.find((contact) => contact.contact_type === "secondary") ?? null;
 
+  const { data: licenseRows } = await service
+    .from("licenciatario_licenses")
+    .select("status, expiration_date")
+    .eq("licenciatario_id", licenciatarioId);
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const hasActiveLicense = (licenseRows ?? []).some((row) => {
+    if (row.status !== "active") return false;
+    const exp = new Date(`${row.expiration_date}T00:00:00`);
+    return exp >= today;
+  });
+
+  const activation = evaluateLicenciatarioActivation({
+    razon_social: lic.razon_social,
+    rut_cuit: lic.rut_cuit,
+    tipo_entidad: lic.tipo_entidad,
+    primary_email: primary?.email ?? "",
+    primary_phone: primary?.phone ?? "",
+    has_active_license: hasActiveLicense,
+  });
+
   return NextResponse.json({
     id: lic.id,
     legal_data: {
@@ -63,6 +86,7 @@ export async function GET(
     created_by: lic.created_by,
     last_modified_date: lic.updated_at,
     last_modified_by: lic.last_modified_by,
+    activation_requirements: activation,
   });
 }
 
@@ -114,11 +138,20 @@ export async function PUT(
   if (currentError) return NextResponse.json({ error: currentError.message }, { status: 500 });
   if (!current) return NextResponse.json({ error: "Licenciatario not found" }, { status: 404 });
 
+  let resolvedTipo: string | undefined;
+  if (body.tipo_entidad !== undefined) {
+    const tipoResolved = await resolveTipoEntidadToSlug(service, body.tipo_entidad, {});
+    if ("error" in tipoResolved) {
+      return NextResponse.json({ error: tipoResolved.error }, { status: 400 });
+    }
+    resolvedTipo = tipoResolved.slug;
+  }
+
   const patch = {
     ...(body.razon_social !== undefined ? { razon_social: body.razon_social.trim() } : {}),
     ...(body.rut_cuit !== undefined ? { rut_cuit: normalizeRutCuit(body.rut_cuit) } : {}),
     ...(body.domicilio !== undefined ? { domicilio: body.domicilio.trim() } : {}),
-    ...(body.tipo_entidad !== undefined ? { tipo_entidad: body.tipo_entidad.trim() } : {}),
+    ...(resolvedTipo !== undefined ? { tipo_entidad: resolvedTipo } : {}),
     ...(body.regimen_tributario !== undefined
       ? { regimen_tributario: body.regimen_tributario.trim() }
       : {}),
@@ -131,6 +164,59 @@ export async function PUT(
     ...(body.status !== undefined ? { status: body.status } : {}),
     last_modified_by: user.id,
   };
+
+  const mergedRazon =
+    body.razon_social !== undefined ? body.razon_social.trim() : current.razon_social;
+  const mergedRut =
+    body.rut_cuit !== undefined ? normalizeRutCuit(body.rut_cuit) : current.rut_cuit;
+  const mergedTipo = resolvedTipo ?? current.tipo_entidad;
+
+  if (body.status === "active" && current.status !== "active") {
+    const { data: contactRows } = await service
+      .from("licenciatario_contacts")
+      .select("contact_type, email, phone")
+      .eq("licenciatario_id", licenciatarioId);
+    const primaryRow = contactRows?.find((c) => c.contact_type === "primary");
+    const primaryEmail =
+      body.primary_contact?.email !== undefined
+        ? (body.primary_contact.email?.trim() ?? "")
+        : (primaryRow?.email ?? "");
+    const primaryPhone =
+      body.primary_contact?.phone !== undefined
+        ? (body.primary_contact.phone?.trim() ?? "")
+        : (primaryRow?.phone ?? "");
+
+    const { data: licenseRows } = await service
+      .from("licenciatario_licenses")
+      .select("status, expiration_date")
+      .eq("licenciatario_id", licenciatarioId);
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const hasActiveLicense = (licenseRows ?? []).some((row) => {
+      if (row.status !== "active") return false;
+      const exp = new Date(`${row.expiration_date}T00:00:00`);
+      return exp >= today;
+    });
+
+    const activation = evaluateLicenciatarioActivation({
+      razon_social: mergedRazon,
+      rut_cuit: mergedRut,
+      tipo_entidad: mergedTipo,
+      primary_email: primaryEmail,
+      primary_phone: primaryPhone,
+      has_active_license: hasActiveLicense,
+    });
+
+    if (!activation.ready) {
+      return NextResponse.json(
+        {
+          error: "No se cumplen los requisitos para activar el licenciatario",
+          missing: activation.missing,
+        },
+        { status: 422 }
+      );
+    }
+  }
 
   const { data: updated, error } = await service
     .from("licenciatarios")

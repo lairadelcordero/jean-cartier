@@ -3,8 +3,9 @@ import Link from "next/link";
 const linkClass =
   "font-inter text-nav font-semibold uppercase tracking-ribbon text-jc-gray-700 transition hover:text-jc-gold";
 
+/** Navegación pública mínima: un solo acceso interno para el equipo Jean Cartier (dueños / backoffice). */
 export function SiteAccessNav() {
-  const loginNext = `/auth/login?next=${encodeURIComponent("/licenciatario/dashboard")}`;
+  const ownerLogin = `/auth/login?next=${encodeURIComponent("/admin")}`;
 
   return (
     <header className="fixed left-0 right-0 top-0 z-40 border-b border-jc-gray-100 bg-jc-white/95 shadow-jc backdrop-blur-sm">
@@ -17,16 +18,13 @@ export function SiteAccessNav() {
         </Link>
         <nav
           className="flex flex-wrap items-center gap-x-5 gap-y-2 sm:gap-x-6"
-          aria-label="Accesos principales"
+          aria-label="Navegación pública"
         >
           <Link href="/media-kit" className={linkClass}>
             Media Kit
           </Link>
-          <Link href="/licenciatario/dashboard" className={linkClass}>
-            Portal licenciatarios
-          </Link>
-          <Link href={loginNext} className={`${linkClass} text-jc-gold hover:text-jc-black`}>
-            Iniciar sesión
+          <Link href={ownerLogin} className={`${linkClass} text-jc-gold hover:text-jc-black`}>
+            Acceso Jean Cartier
           </Link>
         </nav>
       </div>
